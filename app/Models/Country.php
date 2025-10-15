@@ -20,10 +20,6 @@ final class Country extends Model
         'code',
         'region',
         'flag',
-        'application_process_info',
-        'visa_types',
-        'required_documents',
-        'application_stages',
         'is_active',
     ];
 
@@ -32,12 +28,14 @@ final class Country extends Model
         return $this->hasMany(Institution::class);
     }
 
+    public function representingCountry(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(RepresentingCountry::class);
+    }
+
     protected function casts(): array
     {
         return [
-            'visa_types' => 'array',
-            'required_documents' => 'array',
-            'application_stages' => 'array',
             'is_active' => 'boolean',
         ];
     }

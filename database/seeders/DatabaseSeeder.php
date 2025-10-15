@@ -27,15 +27,16 @@ final class DatabaseSeeder extends Seeder
 
         // Seed all tables in order (respecting foreign key relationships)
         $this->call([
-            CountrySeeder::class,        // First: no dependencies
-            BranchSeeder::class,          // Needs users (auto-created by factories)
-            LeadSeeder::class,            // Needs branches, users
-            StudentSeeder::class,         // Needs branches, users, optionally leads
-            InstitutionSeeder::class,     // Needs countries
-            CourseSeeder::class,          // Needs institutions
-            ApplicationSeeder::class,     // Needs students, branches, countries, institutions, courses, users
-            TaskSeeder::class,            // Needs users, branches, optionally applications/leads/students
-            FollowUpSeeder::class,        // Needs users, optionally leads/students/applications
+            RepresentingCountrySeeder::class,     // Needs countries
+            ApplicationProcessSeeder::class,      // Needs representing countries
+            BranchSeeder::class,                  // Needs users (auto-created by factories)
+            LeadSeeder::class,                    // Needs branches, users
+            StudentSeeder::class,                 // Needs branches, users, optionally leads
+            InstitutionSeeder::class,             // Needs countries
+            CourseSeeder::class,                  // Needs institutions
+            ApplicationSeeder::class,             // Needs students, branches, countries, institutions, courses, users
+            TaskSeeder::class,                    // Needs users, branches, optionally applications/leads/students
+            FollowUpSeeder::class,                // Needs users, optionally leads/students/applications
         ]);
     }
 }

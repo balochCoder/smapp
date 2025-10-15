@@ -35,10 +35,6 @@ final class CountryFactory extends Factory
             'code' => $country['code'],
             'region' => $country['region'],
             'flag' => null,
-            'application_process_info' => fake()->optional()->paragraph(),
-            'visa_types' => ['Student Visa', 'Work Permit', 'Dependent Visa'],
-            'required_documents' => ['Passport', 'Offer Letter', 'Financial Proof', 'English Proficiency Test'],
-            'application_stages' => ['Application Submission', 'Offer Received', 'Visa Application', 'Visa Decision'],
             'is_active' => true,
         ];
     }
