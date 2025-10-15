@@ -44,7 +44,11 @@ return new class extends Migration
             $table->index('subject_area');
             $table->index('is_active');
             $table->index('is_featured');
-            $table->fullText(['name', 'description']); // For full-text search
+
+            // Full-text search only for MySQL/PostgreSQL
+            if (config('database.default') !== 'sqlite') {
+                $table->fullText(['name', 'description']);
+            }
         });
     }
 
