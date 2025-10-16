@@ -19,30 +19,34 @@ interface Country {
     flag: string;
 }
 
-interface SubProcess {
-    id: string;
+interface SubStatus {
+    id: number;
     name: string;
-    description: string;
+    description: string | null;
     order: number;
+    is_active: boolean;
 }
 
-interface ApplicationProcess {
-    id: string;
-    name: string;
-    description: string;
+interface RepCountryStatus {
+    id: number;
+    status_name: string;
+    custom_name: string | null;
+    notes: string | null;
     order: number;
-    sub_processes: SubProcess[];
+    is_active: boolean;
+    sub_statuses?: SubStatus[];
 }
 
 interface RepresentingCountry {
     id: string;
     monthly_living_cost: string | null;
+    currency?: string;
     visa_requirements: string | null;
     part_time_work_details: string | null;
     country_benefits: string | null;
     is_active: boolean;
     country: Country;
-    application_processes: ApplicationProcess[];
+    rep_country_statuses?: RepCountryStatus[];
 }
 
 interface Props {
@@ -129,7 +133,7 @@ export default function Show({ representingCountry }: Props) {
                                     </p>
                                     <p className="text-2xl font-bold">
                                         {representingCountry.monthly_living_cost
-                                            ? `$${representingCountry.monthly_living_cost}`
+                                            ? `${representingCountry.currency || 'USD'} ${representingCountry.monthly_living_cost}`
                                             : 'Not specified'}
                                     </p>
                                 </div>
@@ -139,42 +143,47 @@ export default function Show({ representingCountry }: Props) {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Application Processes</CardTitle>
+                            <CardTitle>Application Process Statuses</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                {representingCountry.application_processes
-                                    .length > 0 ? (
-                                    representingCountry.application_processes.map(
-                                        (process) => (
+                                {representingCountry.rep_country_statuses &&
+                                    representingCountry.rep_country_statuses.length > 0 ? (
+                                    representingCountry.rep_country_statuses.map(
+                                        (status) => (
                                             <div
-                                                key={process.id}
+                                                key={status.id}
                                                 className="space-y-1"
                                             >
-                                                <Badge variant="outline">
-                                                    {process.order}.{' '}
-                                                    {process.name}
-                                                </Badge>
-                                                {process.sub_processes?.length >
-                                                    0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline">
+                                                        {status.order}.{' '}
+                                                        {status.custom_name || status.status_name}
+                                                    </Badge>
+                                                    {!status.is_active && (
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            Inactive
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                {status.sub_statuses && status.sub_statuses.length > 0 && (
                                                     <div className="ml-4 space-y-1">
-                                                        {process.sub_processes.map(
-                                                            (subProcess) => (
-                                                                <Badge
-                                                                    key={
-                                                                        subProcess.id
-                                                                    }
-                                                                    variant="secondary"
-                                                                    className="text-xs ml-2"
-                                                                >
-                                                                    {
-                                                                        subProcess.order
-                                                                    }
-                                                                    .{' '}
-                                                                    {
-                                                                        subProcess.name
-                                                                    }
-                                                                </Badge>
+                                                        {status.sub_statuses.map(
+                                                            (subStatus) => (
+                                                                <div key={subStatus.id} className="flex items-center gap-2">
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="text-xs"
+                                                                    >
+                                                                        {subStatus.order}.{' '}
+                                                                        {subStatus.name}
+                                                                    </Badge>
+                                                                    {!subStatus.is_active && (
+                                                                        <Badge variant="outline" className="text-xs">
+                                                                            Inactive
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
                                                             )
                                                         )}
                                                     </div>
@@ -184,7 +193,7 @@ export default function Show({ representingCountry }: Props) {
                                     )
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No application processes assigned
+                                        No application process statuses configured
                                     </p>
                                 )}
                             </div>

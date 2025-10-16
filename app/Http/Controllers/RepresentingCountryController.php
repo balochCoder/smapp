@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\RepresentingCountries\DeleteRepresentingCountry;
 use App\Actions\RepresentingCountries\StoreRepresentingCountry;
 use App\Actions\RepresentingCountries\UpdateRepresentingCountry;
+use App\Helpers\CurrencyHelper;
 use App\Http\Requests\RepresentingCountries\StoreRepresentingCountryRequest;
 use App\Http\Requests\RepresentingCountries\UpdateRepresentingCountryRequest;
 use App\Models\ApplicationProcess;
@@ -43,7 +44,15 @@ final class RepresentingCountryController extends Controller
             ->whereDoesntHave('representingCountry')
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'flag']);
+            ->get(['id', 'name', 'flag'])
+            ->map(function ($country) {
+                return [
+                    'id' => $country->id,
+                    'name' => $country->name,
+                    'flag' => $country->flag,
+                    'currency' => CurrencyHelper::getCurrencyForCountry($country->name),
+                ];
+            });
 
         $applicationProcesses = ApplicationProcess::query()
             ->orderBy('order')
@@ -85,7 +94,23 @@ final class RepresentingCountryController extends Controller
 
     public function edit(RepresentingCountry $representingCountry): Response
     {
-        $representingCountry->load(['country', 'repCountryStatuses']);
+        $representingCountry->load([
+            'country',
+            'repCountryStatuses' => function ($query) {
+                $query->orderBy('order');
+            },
+        ]);
+
+        // Map repCountryStatuses back to application_processes for the form
+        $allProcesses = ApplicationProcess::all();
+        $representingCountry->application_processes = $representingCountry->repCountryStatuses->map(function ($status) use ($allProcesses) {
+            $process = $allProcesses->firstWhere('name', $status->status_name);
+            return [
+                'id' => $process?->id ?? $status->status_name,
+                'name' => $status->custom_name ?? $status->status_name,
+                'color' => $process?->color ?? 'gray',
+            ];
+        });
 
         $applicationProcesses = ApplicationProcess::query()
             ->orderBy('order')

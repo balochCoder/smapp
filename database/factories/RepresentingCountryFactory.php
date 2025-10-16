@@ -22,6 +22,7 @@ final class RepresentingCountryFactory extends Factory
         return [
             'country_id' => Country::factory(),
             'monthly_living_cost' => fake()->randomFloat(2, 800, 2500),
+            'currency' => fake()->randomElement(['USD', 'GBP', 'EUR', 'CAD', 'AUD']),
             'visa_requirements' => fake()->optional()->paragraph(),
             'part_time_work_details' => fake()->optional()->paragraph(),
             'country_benefits' => fake()->optional()->paragraph(),

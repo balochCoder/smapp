@@ -17,6 +17,7 @@ final class StoreRepresentingCountry
             $representingCountry = RepresentingCountry::create([
                 'country_id' => $countryId,
                 'monthly_living_cost' => $data['monthly_living_cost'] ?? null,
+                'currency' => $data['currency'] ?? 'USD',
                 'visa_requirements' => $data['visa_requirements'] ?? null,
                 'part_time_work_details' => $data['part_time_work_details'] ?? null,
                 'country_benefits' => $data['country_benefits'] ?? null,

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\ApplicationProcess;
-use App\Models\RepresentingCountry;
 use Illuminate\Database\Seeder;
 
 final class ApplicationProcessSeeder extends Seeder
@@ -15,73 +14,30 @@ final class ApplicationProcessSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create main processes (parent processes that can be shared across countries)
-        $mainProcesses = [
-            'Application Submission' => 'Submit application to institution',
-            'Offer Received' => 'Receive offer letter from institution',
-            'Visa Application' => 'Apply for student visa',
-            'Visa Decision' => 'Receive visa decision',
-            'Pre-Departure' => 'Pre-departure preparations',
+        // Define default application statuses (flat structure - no parent/child)
+        $statuses = [
+            ['name' => 'New', 'color' => 'blue', 'order' => 1],
+            ['name' => 'Application On Hold', 'color' => 'yellow', 'order' => 2],
+            ['name' => 'Pre-Application Process', 'color' => 'purple', 'order' => 3],
+            ['name' => 'Rejected by University', 'color' => 'red', 'order' => 4],
+            ['name' => 'Application Submitted', 'color' => 'green', 'order' => 5],
+            ['name' => 'Conditional Offer', 'color' => 'orange', 'order' => 6],
+            ['name' => 'Pending Interview', 'color' => 'yellow', 'order' => 7],
+            ['name' => 'Unconditional Offer', 'color' => 'green', 'order' => 8],
+            ['name' => 'Acceptance', 'color' => 'green', 'order' => 9],
+            ['name' => 'Visa Processing', 'color' => 'blue', 'order' => 10],
+            ['name' => 'Enrolled', 'color' => 'green', 'order' => 11],
+            ['name' => 'Dropped', 'color' => 'red', 'order' => 12],
         ];
 
-        $createdProcesses = [];
-        $order = 1;
-        foreach ($mainProcesses as $name => $description) {
-            $process = ApplicationProcess::updateOrCreate(
-                ['name' => $name, 'parent_id' => null],
+        foreach ($statuses as $status) {
+            ApplicationProcess::updateOrCreate(
+                ['name' => $status['name']],
                 [
-                    'description' => $description,
-                    'order' => $order++,
-                    'is_active' => true,
+                    'color' => $status['color'],
+                    'order' => $status['order'],
                 ]
             );
-            $createdProcesses[$name] = $process;
-        }
-
-        // Create country-specific sub-processes
-        $subProcesses = [
-            'Offer Received' => [
-                'CAS Obtained' => 'Obtain Confirmation of Acceptance for Studies (UK)',
-                'COE Obtained' => 'Obtain Confirmation of Enrolment (Australia)',
-                'I-20 Obtained' => 'Obtain I-20 form (USA)',
-                'GIC Payment' => 'Guaranteed Investment Certificate payment (Canada)',
-            ],
-            'Visa Application' => [
-                'Biometrics' => 'Complete biometrics appointment',
-                'Visa Interview' => 'Attend visa interview',
-                'GTE Prepared' => 'Prepare Genuine Temporary Entrant statement (Australia)',
-                'Blocked Account' => 'Open blocked account (Germany)',
-            ],
-        ];
-
-        foreach ($subProcesses as $parentName => $subs) {
-            $parent = $createdProcesses[$parentName] ?? null;
-            if ($parent) {
-                $subOrder = 1;
-                foreach ($subs as $subName => $subDescription) {
-                    ApplicationProcess::updateOrCreate(
-                        ['name' => $subName, 'parent_id' => $parent->id],
-                        [
-                            'description' => $subDescription,
-                            'order' => $subOrder++,
-                            'is_active' => true,
-                        ]
-                    );
-                }
-            }
-        }
-
-        // Attach processes to representing countries
-        $representingCountries = RepresentingCountry::all();
-
-        if ($representingCountries->isNotEmpty()) {
-            // Get all main process IDs
-            $processIds = collect($createdProcesses)->pluck('id')->toArray();
-
-            foreach ($representingCountries as $repCountry) {
-                // Attach all main processes to all representing countries
-                $repCountry->applicationProcesses()->syncWithoutDetaching($processIds);
-            }
         }
     }
 }

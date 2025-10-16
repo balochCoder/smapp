@@ -23,6 +23,7 @@ final class RepresentingCountry extends Model
     protected $fillable = [
         'country_id',
         'monthly_living_cost',
+        'currency',
         'visa_requirements',
         'part_time_work_details',
         'country_benefits',

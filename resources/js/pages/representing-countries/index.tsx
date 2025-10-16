@@ -48,6 +48,8 @@ import {
     Copy,
     List,
     Trash2,
+    Eye,
+    Edit,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
@@ -81,6 +83,7 @@ interface RepCountryStatus {
 interface RepresentingCountry {
     id: string;
     monthly_living_cost: string | null;
+    currency?: string;
     is_active: boolean;
     created_at: string;
     country: Country;
@@ -135,6 +138,11 @@ interface DeleteSubStatusData {
     subStatus: SubStatus;
 }
 
+interface DeleteRepCountryData {
+    id: string;
+    countryName: string;
+}
+
 interface ApplicationProcess {
     id: string;
     name: string;
@@ -165,6 +173,7 @@ export default function Index({ representingCountries: data }: Props) {
     const editSubStatusDialog = useDialog<EditSubStatusDialogData>();
     const deleteStatusAlert = useDialog<DeleteStatusData>();
     const deleteSubStatusAlert = useDialog<DeleteSubStatusData>();
+    const deleteRepCountryAlert = useDialog<DeleteRepCountryData>();
 
     const { data: formData, setData, put, processing, errors, reset } = useForm({
         status_id: 0,
@@ -186,13 +195,17 @@ export default function Index({ representingCountries: data }: Props) {
     });
 
     const handleDelete = (id: string, countryName: string) => {
-        if (
-            confirm(
-                `Are you sure you want to remove ${countryName} from representing countries?`
-            )
-        ) {
-            router.delete(representingCountries.destroy(id).url);
-        }
+        deleteRepCountryAlert.open({ id, countryName });
+    };
+
+    const confirmDeleteRepCountry = () => {
+        if (!deleteRepCountryAlert.data) return;
+
+        router.delete(representingCountries.destroy(deleteRepCountryAlert.data.id).url, {
+            onSuccess: () => {
+                deleteRepCountryAlert.close();
+            },
+        });
     };
 
     const handleToggleActive = (id: string) => {
@@ -576,48 +589,92 @@ export default function Index({ representingCountries: data }: Props) {
                                                 )}
                                             </span>
                                         </div>
+                                       
                                     </div>
 
-                                    <div className="flex gap-1">
-                                        <Link
-                                            href={representingCountries.notes(
-                                                repCountry.id
-                                            )}
-                                            className="flex-1"
-                                        >
+                                    <div className="space-y-1">
+                                        <div className="flex gap-1">
+                                            <Link
+                                                href={representingCountries.show(
+                                                    repCountry.id
+                                                )}
+                                                className="flex-1"
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="w-full h-7 text-xs px-2"
+                                                >
+                                                    <Eye className="mr-1 h-3 w-3" />
+                                                    View
+                                                </Button>
+                                            </Link>
+                                            <Link
+                                                href={representingCountries.edit(
+                                                    repCountry.id
+                                                )}
+                                                className="flex-1"
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="w-full h-7 text-xs px-2"
+                                                >
+                                                    <Edit className="mr-1 h-3 w-3" />
+                                                    Edit
+                                                </Button>
+                                            </Link>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="w-full h-7 text-xs px-2"
+                                                className="flex-1 h-7 text-xs px-2 text-red-600 hover:text-red-700 hover:border-red-600"
+                                                onClick={() => handleDelete(repCountry.id, repCountry.country.name)}
                                             >
-                                                <FileText className="mr-1 h-3 w-3" />
-                                                Notes
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                Delete
                                             </Button>
-                                        </Link>
-                                        <Link
-                                            href={representingCountries.reorder(
-                                                repCountry.id
-                                            )}
-                                            className="flex-1"
-                                        >
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <Link
+                                                href={representingCountries.notes(
+                                                    repCountry.id
+                                                )}
+                                                className="flex-1"
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="w-full h-7 text-xs px-2"
+                                                >
+                                                    <FileText className="mr-1 h-3 w-3" />
+                                                    Notes
+                                                </Button>
+                                            </Link>
+                                            <Link
+                                                href={representingCountries.reorder(
+                                                    repCountry.id
+                                                )}
+                                                className="flex-1"
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="w-full h-7 text-xs px-2"
+                                                >
+                                                <ArrowUpDown className="mr-1 h-3 w-3" />
+                                                Reorder
+                                            </Button>
+                                            </Link>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="w-full h-7 text-xs px-2"
+                                                className="flex-1 h-7 text-xs px-2"
+                                                onClick={() => handleAddStep(repCountry)}
                                             >
-                                            <ArrowUpDown className="mr-1 h-3 w-3" />
-                                            Reorder
-                                        </Button>
-                                        </Link>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="flex-1 h-7 text-xs px-2"
-                                            onClick={() => handleAddStep(repCountry)}
-                                        >
-                                            <PlusIcon className="mr-1 h-3 w-3" />
-                                            Add Step
-                                        </Button>
+                                                <PlusIcon className="mr-1 h-3 w-3" />
+                                                Add Step
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     <div className="border-t pt-3">
@@ -1202,6 +1259,35 @@ export default function Index({ representingCountries: data }: Props) {
                                 className="bg-red-600 hover:bg-red-700"
                             >
                                 Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Delete Representing Country Alert Dialog */}
+                <AlertDialog
+                    open={deleteRepCountryAlert.isOpen}
+                    onOpenChange={(open) => !open && deleteRepCountryAlert.close()}
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Representing Country?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to remove{' '}
+                                <span className="font-semibold">
+                                    {deleteRepCountryAlert.data?.countryName}
+                                </span>{' '}
+                                from representing countries? This will also delete all associated
+                                statuses and sub-statuses. This action cannot be easily undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={confirmDeleteRepCountry}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                Delete Country
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
