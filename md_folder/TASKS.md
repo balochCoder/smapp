@@ -51,8 +51,10 @@
 - [x] Create migration for users table (updated to use ULID)
 - [x] Create migration for countries table with fields: name, flag, is_active (auto-seeded with 195+ countries)
 - [x] Create migration for representing_countries table with fields: country_id, monthly_living_cost, visa_requirements, part_time_work_details, country_benefits, is_active
-- [x] Create migration for application_processes table with hierarchical structure: parent_id (self-referential), name, description, order, is_active
-- [x] Create migration for application_process_representing_country pivot table
+- [x] Create migration for application_processes table with global status definitions: name, color, order
+- [x] Create migration for rep_country_status table for country-specific status instances
+- [x] Create migration for sub_statuses table for status sub-steps
+- [x] Add soft deletes to all tables (users, countries, branches, leads, students, institutions, courses, applications, tasks, follow_ups, representing_countries, application_processes, rep_country_status, sub_statuses)
 - [x] Create migration for branches table
 - [x] Install Spatie Permission package and run migrations (roles/permissions tables) - **v6.21 installed**
 - [x] Create migration for students table
@@ -68,22 +70,20 @@
 - [x] Implement all model seeders for development/testing
 - **Related User Stories:** All data-driven stories
 - **Priority:** P0 - Critical
-- **Status:** ✅ Completed and Verified - October 15, 2025
+- **Status:** ✅ Completed and Verified - October 16, 2025
 - **Database Verified:** All tables, relationships, and seeders verified using Laravel Boost MCP tools
 - **Packages Installed:**
   - spatie/laravel-permission v6.21
   - spatie/laravel-medialibrary v11.15
   - spatie/laravel-activitylog v4.10
-- **Key Relationships:** 
+- **Key Relationships:**
   - Country → Has One RepresentingCountry (if organization represents it)
   - Country → Has Many Institutions → Has Many Courses → Has Many Applications
-  - RepresentingCountry → Belongs To Many ApplicationProcesses (many-to-many)
-  - ApplicationProcess → Has Many SubProcesses (self-referential hierarchical)
-  - ApplicationProcess → Belongs To Parent (self-referential)
-  - ApplicationProcess → Belongs To Many RepresentingCountries (many-to-many)
-- **Architecture:** All models use ULID (HasUlids trait) instead of auto-incrementing IDs
-- **Models Created:** Country (auto-seeded), RepresentingCountry, ApplicationProcess (hierarchical), Branch, Lead, Student, Institution, Course, Application, Task, FollowUp (all with factories and seeders)
-- **Note:** Countries table contains 193 world countries auto-seeded inline during migration (verified via MCP). RepresentingCountries table contains only 7 countries the organization represents with detailed study-abroad information. ApplicationProcesses are hierarchical (13 total: 5 main + 8 sub-processes) and can be shared across multiple representing countries via pivot table (35 relationships verified).
+  - RepresentingCountry → Has Many RepCountryStatuses (ordered country-specific instances)
+  - RepCountryStatus → Has Many SubStatuses (country-specific sub-steps)
+- **Architecture:** All models use ULID (HasUlids trait) instead of auto-incrementing IDs. All models use SoftDeletes trait for soft deletion.
+- **Models Created:** Country (auto-seeded), RepresentingCountry, ApplicationProcess (global templates), RepCountryStatus (country instances), SubStatus, Branch, Lead, Student, Institution, Course, Application, Task, FollowUp (all with factories and seeders)
+- **Note:** Countries table contains 193 world countries auto-seeded inline during migration (verified via MCP). RepresentingCountries table contains only countries the organization represents with detailed study-abroad information. ApplicationProcesses are global status templates that are instantiated per country via rep_country_status table. Each country can customize status names, order, and add country-specific sub-statuses.
 
 ---
 
@@ -92,74 +92,99 @@
 **TASK-003A: Country Representation Management** ✅ **COMPLETED**
 - [x] Create Country model with factory (countries auto-seeded in migration with 195+ countries)
 - [x] Create countries table migration (name, flag, is_active) - **Auto-seeds all world countries with flags**
+- [x] Add soft deletes to countries table
 - [x] Create RepresentingCountry model with factory and seeder
 - [x] Create representing_countries table migration (country_id, monthly_living_cost, visa_requirements, part_time_work_details, country_benefits, is_active)
-- [x] Create ApplicationProcess model with factory and seeder (hierarchical structure)
-- [x] Create application_processes table migration (parent_id, name, description, order, is_active)
-- [x] Create application_process_representing_country pivot table
+- [x] Add soft deletes to representing_countries table
+- [x] Create ApplicationProcess model with factory (global status definitions)
+- [x] Create application_processes table migration (name, color, order) - **Flat structure, no hierarchical parent_id**
+- [x] Add soft deletes to application_processes table
+- [x] Create RepCountryStatus model with factory (country-specific status instances)
+- [x] Create rep_country_status table migration (representing_country_id, status_name, custom_name, notes, order, is_active)
+- [x] Add soft deletes to rep_country_status table
+- [x] Create SubStatus model with factory (sub-statuses for status steps)
+- [x] Create sub_statuses table migration (rep_country_status_id, name, description, order, is_active)
+- [x] Add soft deletes to sub_statuses table
 - [x] Implement Country → RepresentingCountry hasOne relationship
 - [x] Implement RepresentingCountry → Country belongsTo relationship
-- [x] Implement RepresentingCountry → ApplicationProcesses belongsToMany relationship (many-to-many)
-- [x] Implement ApplicationProcess → SubProcesses hasMany relationship (hierarchical/self-referential)
-- [x] Implement ApplicationProcess → Parent belongsTo relationship (hierarchical/self-referential)
-- [x] Implement ApplicationProcess → RepresentingCountries belongsToMany relationship (many-to-many)
-- [x] Update RepresentingCountrySeeder with realistic data for 7 countries (UK, Canada, Australia, USA, Germany, Ireland, New Zealand)
-- [x] Update ApplicationProcessSeeder with hierarchical processes (main processes + country-specific sub-processes)
+- [x] Implement RepresentingCountry → RepCountryStatuses hasMany relationship (ordered)
+- [x] Implement RepCountryStatus → RepresentingCountry belongsTo relationship
+- [x] Implement RepCountryStatus → SubStatuses hasMany relationship
+- [x] Implement SubStatus → RepCountryStatus belongsTo relationship
+- [x] Seed 12 default application statuses (New, Application On Hold, Pre-Application Process, etc.)
+- [x] Auto-create status instances for each representing country upon creation
 - [x] Implement representing country CRUD operations (Actions, Requests, Controllers)
-- [x] Build representing country management interface with shadcn/ui (Card-based grid layout with toggles, action buttons, expandable application steps)
-- [x] Build application process management interface (add/edit/delete/reorder stages, manage hierarchy)
-- [x] Create country selection for representing countries
-- [x] Create representing country assignment for branches
+- [x] Build representing country management interface with shadcn/ui (Card-based grid layout with toggles, action buttons, expandable status steps)
+- [x] Implement country-level active/inactive toggle
+- [x] Implement status-level active/inactive toggle
+- [x] Implement status custom name editing (per country)
+- [x] Create "Add Step" functionality with text input dialog
+- [x] Create "Edit Step" functionality with dialog
+- [x] Implement "Add Sub-Status" functionality with dialog
+- [x] Implement "Edit Sub-Status" functionality with dialog
+- [x] Create "View Sub-Statuses" sheet with shadcn Sheet component
+- [x] Implement real-time UI updates for sub-status changes
+- [x] Implement delete status functionality with AlertDialog confirmation
+- [x] Implement delete sub-status functionality with AlertDialog confirmation
+- [x] Implement cascading soft deletes for sub-statuses
+- [x] Implement drag-and-drop reorder functionality with @dnd-kit
+- [x] Create dedicated reorder page with visual feedback and instructions
+- [x] Implement auto-save on reorder with loading indicators
+- [x] Protect "New" status from editing, deleting, reordering, toggle, and sub-status addition
+- [x] Create useDialog custom hook for dialog state management
+- [x] Implement smooth closing animations for sheets and dialogs
 - [x] Implement Laravel Wayfinder for type-safe routes
+- [x] Add soft deletes to all models (User, Student, Lead, Application, Branch, Country, Course, Institution, Task, FollowUp, RepresentingCountry, ApplicationProcess, RepCountryStatus, SubStatus)
+- [x] Update all migrations to include soft deletes in original create table statements
 - [x] Write comprehensive Pest tests for all CRUD operations
-- [x] Build interface to assign application processes to representing countries (via many-to-many pivot table)
-- [x] Write Pest tests for representing country management (11 tests passing)
-- [x] Write Pest tests for application process management (12 tests passing)
-- [x] Write Pest tests for hierarchical process structure (cascade deletion, parent-child relationships)
-- [x] **NEW:** Implement compact card design with 3 cards per row layout
-- [x] **NEW:** Install and integrate shadcn/ui Switch component for toggles
-- [x] **NEW:** Implement "Add Step" dialog functionality for creating parent application processes
-- [x] **NEW:** Add auto-calculation of order field for application processes
-- [x] **NEW:** Implement smart redirect logic in ApplicationProcessController based on referer
-- [x] **NEW:** Create notes page for editing application process descriptions
-- [x] **NEW:** Implement notes CRUD operations with form validation
-- [x] **NEW:** Add notes button linking to dedicated notes management page
+- [x] Write Pest tests for status management (27 tests passing)
+- [x] Write Pest tests for reorder functionality (9 tests passing)
+- [x] Write Pest tests for "New" status protection
+- [x] Write Pest tests for soft deletes
 - **Related User Stories:** New requirement - Country representation
 - **Priority:** P0 - Critical
 - **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, and advanced features implemented
-- **Database Verification (via Laravel Boost MCP):**
-  - ✅ 193 countries auto-seeded in migration
-  - ✅ 7 representing countries seeded (UK, Canada, Australia, USA, Germany, Ireland, New Zealand)
-  - ✅ 13 application processes (5 main + 8 sub-processes) with hierarchical structure
-  - ✅ 35 pivot relationships (7 countries × 5 main processes)
+- **Database Architecture (Refactored October 16, 2025):**
+  - ✅ **application_processes table:** Global status definitions (12 statuses: New, Application On Hold, Pre-Application Process, Rejected by University, Application Submitted, Conditional Offer, Pending Interview, Unconditional Offer, Acceptance, Visa Processing, Enrolled, Dropped)
+  - ✅ **rep_country_status table:** Country-specific status instances with custom names, notes, order, and active state
+  - ✅ **sub_statuses table:** Sub-statuses for each status step (e.g., Document Collection, Interview Preparation, etc.)
+  - ✅ **Soft Deletes:** All 14 models/tables now support soft deletes (deleted_at column)
 - **UI Features Implemented:**
-  - ✅ Compact card-based grid layout (3 cards per row)
-  - ✅ Switch toggles for active/inactive states
-  - ✅ Expandable application steps with "View All" functionality
-  - ✅ Action buttons (Notes, Reorder, Add Step)
-  - ✅ Application process steps with individual toggles and action buttons
+  - ✅ Compact card-based grid layout (3 cards per row) with country flags
+  - ✅ Switch toggles for country-level and status-level active/inactive states
+  - ✅ Numbered status badges (1, 2, 3...) with custom names display
+  - ✅ Action buttons: Add Step, Notes, Reorder (in Option 1 layout)
+  - ✅ Status-level actions: Edit (pencil), Add Sub-Status (plus), View Sub-Statuses (list), Delete (trash)
+  - ✅ Drag-and-drop reordering with @dnd-kit library
+  - ✅ Sub-status sheet with Shadcn Sheet component showing all sub-statuses
+  - ✅ AlertDialog confirmations for delete operations (replacing native confirm)
+  - ✅ Smooth animations and real-time UI updates
+  - ✅ "System Status" badge for protected "New" status
   - ✅ Responsive design with proper spacing and gaps
 - **Advanced Features:**
-  - ✅ "Add Step" dialog for creating new parent application processes
-  - ✅ Auto-calculation of process order numbers
-  - ✅ Smart redirect logic to stay on representing countries page
-  - ✅ Notes page for editing application process descriptions
-  - ✅ Form validation and error handling
+  - ✅ Custom dialog hook (useDialog) for state management
+  - ✅ Multi-mode dialogs (Add/Edit status and sub-status)
+  - ✅ Real-time sheet data updates without page reload
+  - ✅ Smooth closing animations with delayed data reset
+  - ✅ Auto-save on reorder with visual feedback
+  - ✅ "New" status protection (cannot edit, delete, reorder, toggle, or add sub-statuses)
+  - ✅ Auto-calculation of order numbers for new statuses
+  - ✅ Form validation with Laravel Form Requests
   - ✅ Type-safe routes with Laravel Wayfinder
-- **Note:** Countries table contains ALL world countries. RepresentingCountries table contains only countries the organization represents with detailed study-abroad information. ApplicationProcesses are hierarchical (parent/sub-processes) and can be shared across multiple representing countries.
+  - ✅ Comprehensive error handling
 - **Architecture:**
-  - **Countries Table:** Base table with 195+ world countries (auto-seeded in migration)
-  - **RepresentingCountries Table:** Contains detailed information for countries organization represents
-  - **ApplicationProcesses Table:** Hierarchical structure with parent_id for sub-processes, can be attached to multiple representing countries
-  - **Pivot Table:** application_process_representing_country links processes to countries
-- **Relationships:** 
+  - **Global Statuses:** `application_processes` table contains template statuses shared across all countries
+  - **Country Instances:** `rep_country_status` table creates customizable instances per representing country
+  - **Sub-Statuses:** `sub_statuses` table allows country-specific sub-steps for each status
+  - **Soft Deletes:** All deletions are soft (recoverable), with cascading soft deletes for relationships
+- **Relationships:**
   - Country → Has One RepresentingCountry (nullable)
   - Country → Has Many Institutions → Has Many Courses
   - RepresentingCountry → Belongs To Country
-  - RepresentingCountry → Belongs To Many ApplicationProcesses (many-to-many via pivot)
-  - ApplicationProcess → Has Many SubProcesses (self-referential)
-  - ApplicationProcess → Belongs To Parent (self-referential)
-  - ApplicationProcess → Belongs To Many RepresentingCountries (many-to-many via pivot)
+  - RepresentingCountry → Has Many RepCountryStatuses (ordered)
+  - RepCountryStatus → Belongs To RepresentingCountry
+  - RepCountryStatus → Has Many SubStatuses
+  - SubStatus → Belongs To RepCountryStatus
 
 **TASK-004: Multi-Branch Management System**
 - [ ] Create Branch model with factory and seeder
@@ -328,33 +353,45 @@
 - **Priority:** P0 - Critical
 - **Packages:** spatie/laravel-medialibrary, spatie/laravel-activitylog
 
-**TASK-014: Country-Specific Application Workflows** ⚠️ **PARTIALLY COMPLETED**
-- [x] Create application_processes table with hierarchical structure (parent_id for sub-processes)
-- [x] Create application_process_representing_country pivot table for many-to-many relationship
-- [x] Seed main processes (Application Submission, Offer Received, Visa Application, Visa Decision, Pre-Departure)
-- [x] Seed country-specific sub-processes (CAS Obtained, COE Obtained, I-20 Obtained, GIC Payment, Biometrics, etc.)
-- [x] Link processes hierarchically (parent processes → sub-processes)
-- [x] Attach application processes to all representing countries via pivot table
-- [x] Add order field to sequence application stages
-- [x] Add description field for detailed stage information
-- [x] Add is_active field for process visibility control
-- [ ] Create workflow configuration interface for admins per representing country
-- [ ] Build UI to manage application processes (add/edit/delete/reorder stages, manage hierarchy)
-- [ ] Build UI to assign/unassign processes to representing countries
-- [ ] Build representing country-specific document requirements using Spatie Media Library collections
-- [ ] Implement representing country-specific deadline tracking
-- [ ] Create SOP/LOR templates per representing country
-- [ ] Write Pest tests for hierarchical workflow system
-- [ ] Write Pest tests for many-to-many process assignment
+**TASK-014: Country-Specific Application Workflows** ✅ **COMPLETED**
+- [x] Create application_processes table with global status templates (12 statuses)
+- [x] Create rep_country_status table for country-specific status instances
+- [x] Create sub_statuses table for status sub-steps
+- [x] Seed 12 default application statuses (New, Application On Hold, Pre-Application Process, Rejected by University, Application Submitted, Conditional Offer, Pending Interview, Unconditional Offer, Acceptance, Visa Processing, Enrolled, Dropped)
+- [x] Auto-create status instances for each representing country
+- [x] Add soft deletes to all status-related tables
+- [x] Add order field to sequence application stages per country
+- [x] Add custom_name field for country-specific status naming
+- [x] Add notes field for detailed stage information
+- [x] Add is_active field for status visibility control per country
+- [x] Create workflow configuration interface for admins per representing country
+- [x] Build UI to manage status steps (add/edit/delete/reorder stages)
+- [x] Build UI to manage sub-statuses (add/edit/delete with real-time updates)
+- [x] Implement drag-and-drop reorder with @dnd-kit library
+- [x] Create dedicated reorder page with auto-save functionality
+- [x] Implement "New" status protection (system status that cannot be modified)
+- [x] Build representing country-specific status customization
+- [x] Write Pest tests for status management (27 tests)
+- [x] Write Pest tests for reorder functionality (9 tests)
+- [x] Write Pest tests for "New" status protection
+- [x] Write Pest tests for soft deletes and cascading deletes
 - **Related User Stories:** US-166, US-167, US-168, US-169, US-170, US-171, US-172, US-173
 - **Priority:** P0 - Critical
-- **Status:** ⚠️ Database structure and seeding verified with hierarchical processes, UI and management interface pending
-- **Database Verification (via Laravel Boost MCP):**
-  - ✅ Main Processes: Application Submission, Offer Received, Visa Application, Visa Decision, Pre-Departure
-  - ✅ Sub-Processes under "Offer Received": CAS Obtained (UK), COE Obtained (Australia), I-20 Obtained (USA), GIC Payment (Canada)
-  - ✅ Sub-Processes under "Visa Application": Biometrics, Visa Interview, GTE Prepared (Australia), Blocked Account (Germany)
-  - ✅ All 7 representing countries have all 5 main processes attached
-- **Note:** ApplicationProcesses are hierarchical (parent/sub-processes) and linked to RepresentingCountries via many-to-many relationship. This allows sharing common processes across countries while supporting country-specific sub-processes.
+- **Status:** ✅ **FULLY COMPLETED** - Database architecture refactored, all UI and management interfaces implemented
+- **Database Architecture (Refactored October 16, 2025):**
+  - ✅ **application_processes:** 12 global status templates
+  - ✅ **rep_country_status:** Country-specific status instances (customizable names, order, active state)
+  - ✅ **sub_statuses:** Flexible sub-steps for each status per country
+  - ✅ **Soft Deletes:** All status deletions are soft with cascading to sub-statuses
+- **UI Features:**
+  - ✅ Drag-and-drop reordering with visual feedback
+  - ✅ Add/Edit/Delete status steps with dialogs
+  - ✅ Add/Edit/Delete sub-statuses with sheet view
+  - ✅ Real-time UI updates without page reload
+  - ✅ "New" status protection across all operations
+  - ✅ AlertDialog confirmations for deletions
+  - ✅ Smooth animations for sheets and dialogs
+- **Note:** The new architecture allows each representing country to have its own customized workflow while sharing common status templates. Countries can add custom statuses, reorder steps, rename statuses, and define country-specific sub-statuses (e.g., "CAS Obtained" for UK, "I-20 Received" for USA).
 
 ---
 
@@ -955,20 +992,23 @@
 8. TASK-013 → TASK-014 (Applications before workflows)
 9. TASK-044 → TASK-045 (Performance before scale)
 
-**Data Flow:** 
+**Data Flow:**
 - **All Countries:** Country (193 world countries auto-seeded - verified via MCP)
 - **Institutions:** Country → Institution → Course → Application
-- **Study Abroad Details:** Country → RepresentingCountry (7) ↔ ApplicationProcess (13: 5 main + 8 sub) - many-to-many
-- **Application Processes:** ApplicationProcess (parent) → SubProcess (child) - hierarchical structure
+- **Study Abroad Details:** Country → RepresentingCountry → RepCountryStatuses → SubStatuses
+- **Status System:** ApplicationProcess (12 global templates) → RepCountryStatus (country instances) → SubStatus (sub-steps)
 - **Verified Data (via Laravel Boost MCP):**
   - ✅ 193 countries auto-seeded
-  - ✅ 7 representing countries (UK, Canada, Australia, USA, Germany, Ireland, New Zealand)
-  - ✅ 13 application processes (5 main processes, 8 country-specific sub-processes)
-  - ✅ 35 pivot relationships (7 countries × 5 main processes each)
-- **Note:** 
+  - ✅ 12 global application status templates
+  - ✅ Country-specific status instances with customizable names and order
+  - ✅ Sub-statuses for detailed step tracking per country
+  - ✅ Soft deletes on all 14 models/tables
+- **Note:**
   - Only countries the organization represents have a RepresentingCountry record with detailed information
-  - ApplicationProcesses are hierarchical (parent/sub-processes) and can be shared across multiple representing countries via pivot table
-  - Main processes (e.g., "Visa Application") can have country-specific sub-processes (e.g., "Biometrics", "Visa Interview")
+  - ApplicationProcesses are global templates that get instantiated per country via rep_country_status
+  - Each country can customize status names, reorder statuses, and add country-specific sub-statuses
+  - "New" status is protected and cannot be modified or deleted across all countries
+  - All models support soft deletes for data recovery
 
 ### Parallel Tasks (Can be developed simultaneously):
 - TASK-015 & TASK-016 (Follow-ups and Tasks)

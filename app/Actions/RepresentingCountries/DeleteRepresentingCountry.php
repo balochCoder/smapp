@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 final class DeleteRepresentingCountry
 {
-    public function handle(RepresentingCountry $representingCountry): bool
+    public function handle(RepresentingCountry $representingCountry): void
     {
-        return DB::transaction(function () use ($representingCountry) {
-            // Detach all application processes
-            $representingCountry->applicationProcesses()->detach();
+        DB::transaction(function () use ($representingCountry) {
+            // Delete associated status records (cascade will handle sub_statuses)
+            $representingCountry->repCountryStatuses()->delete();
 
             // Delete the representing country
-            return (bool) $representingCountry->delete();
+            $representingCountry->delete();
         });
     }
 }

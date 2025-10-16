@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['parent_id', 'order']);
             $table->index('is_active');

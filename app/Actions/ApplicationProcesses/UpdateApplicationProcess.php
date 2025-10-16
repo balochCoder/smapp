@@ -14,17 +14,11 @@ final class UpdateApplicationProcess
         return DB::transaction(function () use ($applicationProcess, $data) {
             $applicationProcess->update([
                 'name' => $data['name'] ?? $applicationProcess->name,
-                'description' => $data['description'] ?? $applicationProcess->description,
+                'color' => $data['color'] ?? $applicationProcess->color,
                 'order' => $data['order'] ?? $applicationProcess->order,
-                'is_active' => $data['is_active'] ?? $applicationProcess->is_active,
             ]);
 
-            // Sync representing countries if provided
-            if (isset($data['representing_country_ids']) && is_array($data['representing_country_ids'])) {
-                $applicationProcess->representingCountries()->sync($data['representing_country_ids']);
-            }
-
-            return $applicationProcess->fresh(['parent', 'subProcesses', 'representingCountries']);
+            return $applicationProcess->fresh();
         });
     }
 }

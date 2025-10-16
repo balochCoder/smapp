@@ -32,6 +32,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_main')->default(false); // Main/Head office flag
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('code');
             $table->index('is_active');

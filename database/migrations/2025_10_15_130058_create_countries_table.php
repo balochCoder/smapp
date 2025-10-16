@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('flag')->nullable(); // URL or path to flag image
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('name');
             $table->index('is_active');
