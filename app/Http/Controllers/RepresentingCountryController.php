@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\RepresentingCountries\AddStatusToRepresentingCountry;
+use App\Actions\RepresentingCountries\AddSubStatusToStatus;
 use App\Actions\RepresentingCountries\DeleteRepresentingCountry;
+use App\Actions\RepresentingCountries\DeleteStatus;
+use App\Actions\RepresentingCountries\DeleteSubStatus;
 use App\Actions\RepresentingCountries\StoreRepresentingCountry;
 use App\Actions\RepresentingCountries\UpdateRepresentingCountry;
+use App\Actions\RepresentingCountries\UpdateStatusName;
+use App\Actions\RepresentingCountries\UpdateStatusNotes;
+use App\Actions\RepresentingCountries\UpdateStatusOrder;
+use App\Actions\RepresentingCountries\UpdateSubStatus;
 use App\Helpers\CurrencyHelper;
 use App\Http\Requests\RepresentingCountries\StoreRepresentingCountryRequest;
 use App\Http\Requests\RepresentingCountries\UpdateRepresentingCountryRequest;
@@ -166,7 +174,8 @@ final class RepresentingCountryController extends Controller
 
     public function updateOrder(
         RepresentingCountry $representingCountry,
-        Request $request
+        Request $request,
+        UpdateStatusOrder $updateOrderAction
     ): RedirectResponse {
         $validated = $request->validate([
             'status_orders' => 'required|array',
@@ -174,18 +183,7 @@ final class RepresentingCountryController extends Controller
             'status_orders.*.order' => 'required|integer|min:1',
         ]);
 
-        foreach ($validated['status_orders'] as $statusOrder) {
-            $status = RepCountryStatus::find($statusOrder['id']);
-
-            // Prevent reordering the "New" status
-            if ($status && $status->status_name === 'New') {
-                continue;
-            }
-
-            RepCountryStatus::where('id', $statusOrder['id'])->update([
-                'order' => $statusOrder['order'],
-            ]);
-        }
+        $updateOrderAction->handle($validated['status_orders']);
 
         return redirect()
             ->back()
@@ -227,7 +225,8 @@ final class RepresentingCountryController extends Controller
 
     public function updateStatusName(
         RepresentingCountry $representingCountry,
-        Request $request
+        Request $request,
+        UpdateStatusName $updateStatusNameAction
     ): RedirectResponse {
         $validated = $request->validate([
             'status_id' => 'required|exists:rep_country_status,id',
@@ -236,9 +235,7 @@ final class RepresentingCountryController extends Controller
 
         $status = RepCountryStatus::find($validated['status_id']);
         if ($status && $status->representing_country_id === $representingCountry->id) {
-            $status->update([
-                'custom_name' => $validated['custom_name'],
-            ]);
+            $updateStatusNameAction->handle($status, $validated['custom_name']);
         }
 
         return redirect()
@@ -262,7 +259,8 @@ final class RepresentingCountryController extends Controller
 
     public function updateNotes(
         RepresentingCountry $representingCountry,
-        Request $request
+        Request $request,
+        UpdateStatusNotes $updateNotesAction
     ): RedirectResponse {
         $validated = $request->validate([
             'status_notes' => 'required|array',
@@ -270,11 +268,7 @@ final class RepresentingCountryController extends Controller
             'status_notes.*.notes' => 'nullable|string',
         ]);
 
-        foreach ($validated['status_notes'] as $statusNote) {
-            RepCountryStatus::where('id', $statusNote['id'])->update([
-                'notes' => $statusNote['notes'],
-            ]);
-        }
+        $updateNotesAction->handle($validated['status_notes']);
 
         return redirect()
             ->route('representing-countries.notes', $representingCountry)
@@ -283,7 +277,8 @@ final class RepresentingCountryController extends Controller
 
     public function addStatus(
         RepresentingCountry $representingCountry,
-        Request $request
+        Request $request,
+        AddStatusToRepresentingCountry $addStatusAction
     ): RedirectResponse {
         $validated = $request->validate([
             'status_name' => [
@@ -297,15 +292,7 @@ final class RepresentingCountryController extends Controller
             'status_name.unique' => 'This status already exists for this country.',
         ]);
 
-        // Get the max order for this representing country
-        $maxOrder = $representingCountry->repCountryStatuses()->max('order') ?? 0;
-
-        RepCountryStatus::create([
-            'representing_country_id' => $representingCountry->id,
-            'status_name' => $validated['status_name'],
-            'order' => $maxOrder + 1,
-            'is_active' => true,
-        ]);
+        $addStatusAction->handle($representingCountry, $validated['status_name']);
 
         return redirect()
             ->back()
@@ -315,7 +302,8 @@ final class RepresentingCountryController extends Controller
     public function addSubStatus(
         RepresentingCountry $representingCountry,
         RepCountryStatus $status,
-        Request $request
+        Request $request,
+        AddSubStatusToStatus $addSubStatusAction
     ): RedirectResponse {
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
@@ -335,15 +323,7 @@ final class RepresentingCountryController extends Controller
             'name.unique' => 'This sub-status already exists for this status.',
         ]);
 
-        // Get the max order for this status's sub-statuses
-        $maxOrder = $status->subStatuses()->max('order') ?? 0;
-
-        $status->subStatuses()->create([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'order' => $maxOrder + 1,
-            'is_active' => true,
-        ]);
+        $addSubStatusAction->handle($status, $validated);
 
         return redirect()
             ->back()
@@ -352,18 +332,15 @@ final class RepresentingCountryController extends Controller
 
     public function deleteStatus(
         RepresentingCountry $representingCountry,
-        RepCountryStatus $status
+        RepCountryStatus $status,
+        DeleteStatus $deleteStatusAction
     ): RedirectResponse {
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);
         }
 
-        // Soft delete all sub-statuses first
-        $status->subStatuses()->delete();
-
-        // Then soft delete the status
-        $status->delete();
+        $deleteStatusAction->handle($status);
 
         return redirect()
             ->back()
@@ -373,7 +350,8 @@ final class RepresentingCountryController extends Controller
     public function deleteSubStatus(
         RepresentingCountry $representingCountry,
         RepCountryStatus $status,
-        $subStatusId
+        $subStatusId,
+        DeleteSubStatus $deleteSubStatusAction
     ): RedirectResponse {
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
@@ -381,7 +359,7 @@ final class RepresentingCountryController extends Controller
         }
 
         $subStatus = $status->subStatuses()->findOrFail($subStatusId);
-        $subStatus->delete();
+        $deleteSubStatusAction->handle($subStatus);
 
         return redirect()
             ->back()
@@ -392,7 +370,8 @@ final class RepresentingCountryController extends Controller
         RepresentingCountry $representingCountry,
         RepCountryStatus $status,
         $subStatusId,
-        Request $request
+        Request $request,
+        UpdateSubStatus $updateSubStatusAction
     ): RedirectResponse {
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
@@ -415,10 +394,7 @@ final class RepresentingCountryController extends Controller
             'name.unique' => 'This sub-status name already exists for this status.',
         ]);
 
-        $subStatus->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-        ]);
+        $updateSubStatusAction->handle($subStatus, $validated);
 
         return redirect()
             ->back()
