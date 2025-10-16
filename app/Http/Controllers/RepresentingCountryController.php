@@ -41,7 +41,7 @@ final class RepresentingCountryController extends Controller
                 },
             ])
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(12);
 
         return Inertia::render('representing-countries/index', [
             'representingCountries' => RepresentingCountryResource::collection($representingCountries),

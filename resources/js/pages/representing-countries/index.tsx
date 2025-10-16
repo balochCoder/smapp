@@ -8,6 +8,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -92,10 +101,12 @@ interface RepresentingCountry {
 
 interface PaginatedData {
     data: RepresentingCountry[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
+    meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
 }
 
 interface Props {
@@ -488,6 +499,55 @@ export default function Index({ representingCountries: data }: Props) {
         });
     };
 
+    const generatePageNumbers = () => {
+        const pages: (number | string)[] = [];
+        const currentPage = data.meta.current_page;
+        const lastPage = data.meta.last_page;
+        const delta = 2; // Number of pages to show on each side of current page
+
+        if (lastPage <= 7) {
+            // Show all pages if total is 7 or less
+            for (let i = 1; i <= lastPage; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Always show first page
+            pages.push(1);
+
+            // Calculate range around current page
+            const rangeStart = Math.max(2, currentPage - delta);
+            const rangeEnd = Math.min(lastPage - 1, currentPage + delta);
+
+            // Add ellipsis after first page if needed
+            if (rangeStart > 2) {
+                pages.push('ellipsis-start');
+            }
+
+            // Add pages around current page
+            for (let i = rangeStart; i <= rangeEnd; i++) {
+                pages.push(i);
+            }
+
+            // Add ellipsis before last page if needed
+            if (rangeEnd < lastPage - 1) {
+                pages.push('ellipsis-end');
+            }
+
+            // Always show last page
+            pages.push(lastPage);
+        }
+
+        return pages;
+    };
+
+    const goToPage = (page: number) => {
+        router.get(
+            representingCountries.index().url,
+            { page },
+            { preserveScroll: true, preserveState: true }
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Representing Countries" />
@@ -816,6 +876,72 @@ export default function Index({ representingCountries: data }: Props) {
                         );
                     })}
                 </div>
+
+                {/* Pagination */}
+                {data?.data && data.data.length > 0 && data.meta.last_page > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (data.meta.current_page > 1) {
+                                            goToPage(data.meta.current_page - 1);
+                                        }
+                                    }}
+                                    className={
+                                        data.meta.current_page === 1
+                                            ? 'pointer-events-none opacity-50'
+                                            : ''
+                                    }
+                                />
+                            </PaginationItem>
+
+                            {generatePageNumbers().map((page, index) => {
+                                if (typeof page === 'string') {
+                                    return (
+                                        <PaginationItem key={`${page}-${index}`}>
+                                            <PaginationEllipsis />
+                                        </PaginationItem>
+                                    );
+                                }
+
+                                return (
+                                    <PaginationItem key={page}>
+                                        <PaginationLink
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                goToPage(page);
+                                            }}
+                                            isActive={data.meta.current_page === page}
+                                        >
+                                            {page}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                );
+                            })}
+
+                            <PaginationItem>
+                                <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (data.meta.current_page < data.meta.last_page) {
+                                            goToPage(data.meta.current_page + 1);
+                                        }
+                                    }}
+                                    className={
+                                        data.meta.current_page === data.meta.last_page
+                                            ? 'pointer-events-none opacity-50'
+                                            : ''
+                                    }
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
 
                 {(!data?.data || data.data.length === 0) && (
                     <Card>
