@@ -12,35 +12,15 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type RepresentingCountry,
+    type ApplicationProcess,
+} from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Briefcase, FileText, Gift, Globe, Settings } from 'lucide-react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
-
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-}
-
-interface ApplicationProcess {
-    id: string;
-    name: string;
-    color: string;
-}
-
-interface RepresentingCountry {
-    id: string;
-    monthly_living_cost: string | null;
-    currency?: string;
-    visa_requirements: string | null;
-    part_time_work_details: string | null;
-    country_benefits: string | null;
-    is_active: boolean;
-    country: Country;
-    application_processes?: ApplicationProcess[];
-}
 
 interface Props {
     representingCountry: RepresentingCountry;

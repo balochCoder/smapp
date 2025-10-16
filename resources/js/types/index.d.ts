@@ -41,3 +41,67 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Country {
+    id: string;
+    name: string;
+    flag: string;
+    currency?: string;
+}
+
+export interface SubStatus {
+    id: number;
+    name: string;
+    description: string | null;
+    order: number;
+    is_active: boolean;
+}
+
+export interface RepCountryStatus {
+    id: number;
+    status_name: string;
+    custom_name: string | null;
+    notes: string | null;
+    order: number;
+    is_active: boolean;
+    sub_statuses?: SubStatus[];
+}
+
+export interface RepresentingCountry {
+    id: string;
+    monthly_living_cost: string | null;
+    currency?: string;
+    visa_requirements?: string | null;
+    part_time_work_details?: string | null;
+    country_benefits?: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at?: string;
+    country: Country;
+    rep_country_statuses?: RepCountryStatus[];
+    application_processes?: ApplicationProcess[];
+}
+
+export interface ApplicationProcess {
+    id: string;
+    name: string;
+    color: string;
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+    };
+    links: {
+        first: string | null;
+        last: string | null;
+        prev: string | null;
+        next: string | null;
+    };
+}

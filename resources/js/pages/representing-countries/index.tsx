@@ -45,7 +45,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Country,
+    type SubStatus,
+    type RepCountryStatus,
+    type RepresentingCountry,
+    type ApplicationProcess,
+    type PaginatedData,
+} from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     PlusIcon,
@@ -65,52 +73,8 @@ import * as representingCountries from '@/routes/representing-countries';
 import { useState } from 'react';
 import { useDialog } from '@/hooks/use-dialog';
 
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-}
-
-interface SubStatus {
-    id: number;
-    name: string;
-    description: string | null;
-    order: number;
-    is_active: boolean;
-}
-
-interface RepCountryStatus {
-    id: number;
-    status_name: string;
-    custom_name: string | null;
-    notes: string | null;
-    order: number;
-    is_active: boolean;
-    sub_statuses?: SubStatus[];
-}
-
-interface RepresentingCountry {
-    id: string;
-    monthly_living_cost: string | null;
-    currency?: string;
-    is_active: boolean;
-    created_at: string;
-    country: Country;
-    rep_country_statuses: RepCountryStatus[];
-}
-
-interface PaginatedData {
-    data: RepresentingCountry[];
-    meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-    };
-}
-
 interface Props {
-    representingCountries: PaginatedData;
+    representingCountries: PaginatedData<RepresentingCountry>;
 }
 
 interface StatusDialogData {
@@ -152,12 +116,6 @@ interface DeleteSubStatusData {
 interface DeleteRepCountryData {
     id: string;
     countryName: string;
-}
-
-interface ApplicationProcess {
-    id: string;
-    name: string;
-    color: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [

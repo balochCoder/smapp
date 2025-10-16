@@ -9,29 +9,13 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type RepresentingCountry,
+} from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
-
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-}
-
-interface RepCountryStatus {
-    id: number;
-    status_name: string;
-    custom_name: string | null;
-    notes: string | null;
-}
-
-interface RepresentingCountry {
-    id: string;
-    country: Country;
-    rep_country_statuses: RepCountryStatus[];
-}
 
 interface Props {
     representingCountry: RepresentingCountry;
@@ -39,7 +23,7 @@ interface Props {
 
 export default function Notes({ representingCountry }: Props) {
     const { data, setData, post, processing, errors } = useForm({
-        status_notes: representingCountry.rep_country_statuses.map(
+        status_notes: (representingCountry.rep_country_statuses || []).map(
             (status) => ({
                 id: status.id,
                 notes: status.notes || '',

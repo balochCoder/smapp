@@ -8,7 +8,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type RepresentingCountry,
+    type RepCountryStatus,
+} from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { GripVertical, Loader2, ArrowLeft, Info, CheckCircle, ArrowUpDown } from 'lucide-react';
 import { dashboard } from '@/routes';
@@ -31,25 +35,6 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-}
-
-interface RepCountryStatus {
-    id: number;
-    status_name: string;
-    custom_name: string | null;
-    order: number;
-}
-
-interface RepresentingCountry {
-    id: string;
-    country: Country;
-    rep_country_statuses: RepCountryStatus[];
-}
 
 interface Props {
     representingCountry: RepresentingCountry;
@@ -133,7 +118,7 @@ function SortableItem({ status, index }: SortableItemProps) {
 
 export default function Reorder({ representingCountry }: Props) {
     const [statuses, setStatuses] = useState<RepCountryStatus[]>(
-        representingCountry.rep_country_statuses
+        representingCountry.rep_country_statuses || []
     );
     const [isSaving, setIsSaving] = useState(false);
     const prevOrderRef = useRef<string[]>(statuses.map(s => s.id.toString()));

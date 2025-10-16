@@ -7,5 +7,3 @@ Saas Application
 Sonner
 roles and permissions
 tenants base
-pagination
-Spatie Query Builder

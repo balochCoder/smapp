@@ -7,47 +7,14 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type RepresentingCountry,
+} from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Edit, ArrowLeft } from 'lucide-react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
-
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-}
-
-interface SubStatus {
-    id: number;
-    name: string;
-    description: string | null;
-    order: number;
-    is_active: boolean;
-}
-
-interface RepCountryStatus {
-    id: number;
-    status_name: string;
-    custom_name: string | null;
-    notes: string | null;
-    order: number;
-    is_active: boolean;
-    sub_statuses?: SubStatus[];
-}
-
-interface RepresentingCountry {
-    id: string;
-    monthly_living_cost: string | null;
-    currency?: string;
-    visa_requirements: string | null;
-    part_time_work_details: string | null;
-    country_benefits: string | null;
-    is_active: boolean;
-    country: Country;
-    rep_country_statuses?: RepCountryStatus[];
-}
 
 interface Props {
     representingCountry: RepresentingCountry;

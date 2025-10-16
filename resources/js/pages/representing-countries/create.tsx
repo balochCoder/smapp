@@ -19,25 +19,16 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Country,
+    type ApplicationProcess,
+} from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { ArrowLeft, Briefcase, FileText, Gift, Globe, Plus, Settings } from 'lucide-react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
-
-interface Country {
-    id: string;
-    name: string;
-    flag: string;
-    currency: string;
-}
-
-interface ApplicationProcess {
-    id: string;
-    name: string;
-    color: string;
-}
 
 interface Props {
     countries: Country[];
@@ -94,7 +85,7 @@ export default function Create({ countries, applicationProcesses }: Props) {
         setData('country_id', value);
         const country = countries.find((c) => c.id === value);
         if (country) {
-            setData('currency', country.currency);
+            setData('currency', country.currency || 'USD');
         }
     };
 
