@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('country_benefits')->nullable(); // Benefits of studying in this country
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('country_id');
             $table->index('is_active');

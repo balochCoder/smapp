@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 use App\Models\ApplicationProcess;
 use App\Models\Country;
+use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\assertDatabaseMissing;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -41,7 +42,7 @@ it('can display the create page', function () {
 
 it('can create a new representing country', function () {
     $country = Country::factory()->create();
-    $processes = ApplicationProcess::factory()->count(3)->create(['parent_id' => null]);
+    $processes = ApplicationProcess::factory()->count(3)->create();
 
     $data = [
         'country_id' => $country->id,
@@ -64,7 +65,16 @@ it('can create a new representing country', function () {
     ]);
 
     $repCountry = RepresentingCountry::where('country_id', $country->id)->first();
-    expect($repCountry->applicationProcesses)->toHaveCount(3);
+    expect($repCountry->repCountryStatuses)->toHaveCount(3);
+
+    // Verify status records were created with correct status_name
+    foreach ($processes as $process) {
+        assertDatabaseHas('rep_country_status', [
+            'representing_country_id' => $repCountry->id,
+            'status_name' => $process->name,
+            'is_active' => true,
+        ]);
+    }
 });
 
 it('validates required fields when creating', function () {
@@ -86,9 +96,10 @@ it('prevents duplicate representing countries', function () {
 });
 
 it('can show a representing country', function () {
-    $repCountry = RepresentingCountry::factory()
-        ->has(ApplicationProcess::factory()->count(2), 'applicationProcesses')
-        ->create();
+    $repCountry = RepresentingCountry::factory()->create();
+    RepCountryStatus::factory()->count(2)->create([
+        'representing_country_id' => $repCountry->id,
+    ]);
 
     $response = $this->get(route('representing-countries.show', $repCountry));
 
@@ -115,7 +126,7 @@ it('can update a representing country', function () {
         'monthly_living_cost' => 1000,
     ]);
 
-    $newProcesses = ApplicationProcess::factory()->count(2)->create(['parent_id' => null]);
+    $newProcesses = ApplicationProcess::factory()->count(2)->create();
 
     $data = [
         'monthly_living_cost' => 1500.75,
@@ -138,13 +149,14 @@ it('can update a representing country', function () {
     ]);
 
     $repCountry->refresh();
-    expect($repCountry->applicationProcesses)->toHaveCount(2);
+    expect($repCountry->repCountryStatuses)->toHaveCount(2);
 });
 
 it('can delete a representing country', function () {
-    $repCountry = RepresentingCountry::factory()
-        ->has(ApplicationProcess::factory()->count(2), 'applicationProcesses')
-        ->create();
+    $repCountry = RepresentingCountry::factory()->create();
+    RepCountryStatus::factory()->count(2)->create([
+        'representing_country_id' => $repCountry->id,
+    ]);
 
     $response = $this->delete(
         route('representing-countries.destroy', $repCountry)
@@ -152,9 +164,7 @@ it('can delete a representing country', function () {
 
     $response->assertRedirect(route('representing-countries.index'));
 
-    assertDatabaseMissing('representing_countries', [
-        'id' => $repCountry->id,
-    ]);
+    expect($repCountry->fresh()->trashed())->toBeTrue();
 });
 
 it('validates monthly living cost is numeric', function () {
@@ -177,4 +187,36 @@ it('validates monthly living cost is not negative', function () {
     ]);
 
     $response->assertSessionHasErrors(['monthly_living_cost']);
+});
+
+it('can toggle representing country active status', function () {
+    $country = Country::factory()->create();
+    $representingCountry = RepresentingCountry::factory()->create([
+        'country_id' => $country->id,
+        'is_active' => true,
+    ]);
+
+    $response = $this->post(route('representing-countries.toggle-active', $representingCountry));
+
+    $response->assertRedirect()
+        ->assertSessionHas('success', 'Representing country status updated successfully.');
+
+    expect($representingCountry->fresh()->is_active)->toBeFalse();
+
+    // Toggle back
+    $this->post(route('representing-countries.toggle-active', $representingCountry));
+
+    expect($representingCountry->fresh()->is_active)->toBeTrue();
+});
+
+it('requires authentication to toggle active status', function () {
+    Auth::logout();
+
+    $country = Country::factory()->create();
+    $representingCountry = RepresentingCountry::factory()->create([
+        'country_id' => $country->id,
+    ]);
+
+    $this->post(route('representing-countries.toggle-active', $representingCountry))
+        ->assertRedirect(route('login'));
 });

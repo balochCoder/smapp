@@ -37,6 +37,7 @@ return new class extends Migration
             $table->boolean('is_partner')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('country_id');
             $table->index('is_partner');

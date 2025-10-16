@@ -9,14 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 final class DeleteApplicationProcess
 {
-    public function handle(ApplicationProcess $applicationProcess): bool
+    public function handle(ApplicationProcess $applicationProcess): void
     {
-        return DB::transaction(function () use ($applicationProcess) {
-            // Detach all representing countries
-            $applicationProcess->representingCountries()->detach();
-
-            // Delete the application process (cascade will handle sub-processes)
-            return (bool) $applicationProcess->delete();
+        DB::transaction(function () use ($applicationProcess) {
+            // Delete the application process
+            $applicationProcess->delete();
         });
     }
 }

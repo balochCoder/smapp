@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Student extends Model
 {
@@ -14,7 +15,7 @@ final class Student extends Model
     use HasFactory;
 
     use HasUlids;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
         'lead_id',

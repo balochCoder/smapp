@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\RepresentingCountries;
 
+use App\Models\ApplicationProcess;
+use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use Illuminate\Support\Facades\DB;
 
@@ -20,12 +22,40 @@ final class UpdateRepresentingCountry
                 'is_active' => $data['is_active'] ?? $representingCountry->is_active,
             ]);
 
-            // Sync application processes if provided
+            // Update status records if application processes are provided
             if (isset($data['application_process_ids']) && is_array($data['application_process_ids'])) {
-                $representingCountry->applicationProcesses()->sync($data['application_process_ids']);
+                // Get existing status names
+                $existingStatuses = $representingCountry->repCountryStatuses->pluck('status_name', 'id')->toArray();
+
+                // Get new processes
+                $newProcesses = ApplicationProcess::whereIn('id', $data['application_process_ids'])
+                    ->orderBy('order')
+                    ->get()
+                    ->pluck('name')
+                    ->toArray();
+
+                // Remove statuses that are no longer in the list
+                $statusesToRemove = array_diff($existingStatuses, $newProcesses);
+                if (! empty($statusesToRemove)) {
+                    RepCountryStatus::whereIn('id', array_keys($statusesToRemove))->delete();
+                }
+
+                // Add new statuses
+                $newStatusNames = array_diff($newProcesses, $existingStatuses);
+                foreach ($newStatusNames as $index => $statusName) {
+                    $process = ApplicationProcess::where('name', $statusName)->first();
+                    if ($process) {
+                        RepCountryStatus::create([
+                            'representing_country_id' => $representingCountry->id,
+                            'status_name' => $process->name,
+                            'order' => count($existingStatuses) + $index + 1,
+                            'is_active' => true,
+                        ]);
+                    }
+                }
             }
 
-            return $representingCountry->fresh(['country', 'applicationProcesses']);
+            return $representingCountry->fresh(['country', 'repCountryStatuses.subStatuses']);
         });
     }
 }

@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Institution extends Model
 {
@@ -14,6 +15,7 @@ final class Institution extends Model
     use HasFactory;
 
     use HasUlids;
+    use SoftDeletes;
 
     protected $fillable = [
         'country_id',
