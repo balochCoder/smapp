@@ -28,9 +28,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('representing-countries/{representingCountry}/status/{status}/add-substatus', [App\Http\Controllers\RepresentingCountryController::class, 'addSubStatus'])->name('representing-countries.add-substatus');
     Route::put('representing-countries/{representingCountry}/status/{status}/substatus/{subStatus}', [App\Http\Controllers\RepresentingCountryController::class, 'updateSubStatus'])->name('representing-countries.update-substatus');
     Route::delete('representing-countries/{representingCountry}/status/{status}/substatus/{subStatus}', [App\Http\Controllers\RepresentingCountryController::class, 'deleteSubStatus'])->name('representing-countries.delete-substatus');
-
-    // Application Processes Management
-    Route::resource('application-processes', App\Http\Controllers\ApplicationProcessController::class);
 });
 
 require __DIR__.'/settings.php';
