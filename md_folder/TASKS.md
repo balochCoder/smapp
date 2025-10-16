@@ -141,9 +141,24 @@
 - [x] Write Pest tests for reorder functionality (9 tests passing)
 - [x] Write Pest tests for "New" status protection
 - [x] Write Pest tests for soft deletes
+- [x] Implement pagination for representing countries index (9 per page, 3-column grid optimized)
+- [x] Add shadcn/ui Pagination component with smart ellipsis
+- [x] Fix browser errors with null safety checks and optional chaining
+- [x] Centralize all TypeScript interfaces to global types file (index.d.ts)
+- [x] Create reusable PaginatedData<T> generic type for all paginated resources
+- [x] Add defensive programming for undefined/null values across all pages
 - **Related User Stories:** New requirement - Country representation
 - **Priority:** P0 - Critical
-- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, and advanced features implemented
+- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, pagination, and advanced features implemented
+- **Latest Updates (October 16, 2025):**
+  - ✅ Fixed critical browser errors: Cannot read properties of undefined (reading 'slice', 'flag', 'toString')
+  - ✅ Fixed Laravel MissingAttributeException in RepresentingCountryResource using property_exists()
+  - ✅ Added pagination with shadcn/ui component (12 items per page, 3-column grid optimized)
+  - ✅ Implemented smart pagination with ellipsis for large page counts
+  - ✅ Centralized all TypeScript types to resources/js/types/index.d.ts (6 pages refactored)
+  - ✅ Created generic PaginatedData<T> type with meta and links for Laravel Resource Collections
+  - ✅ Added null safety checks across all 6 pages with optional chaining
+  - ✅ All 67 Pest tests passing (RepCountryStatusTest: 31, RepresentingCountryTest: 27, RepresentingCountryReorderTest: 9)
 - **Database Architecture (Refactored October 16, 2025):**
   - ✅ **application_processes table:** Global status definitions (12 statuses: New, Application On Hold, Pre-Application Process, Rejected by University, Application Submitted, Conditional Offer, Pending Interview, Unconditional Offer, Acceptance, Visa Processing, Enrolled, Dropped)
   - ✅ **rep_country_status table:** Country-specific status instances with custom names, notes, order, and active state
@@ -153,7 +168,7 @@
   - ✅ Compact card-based grid layout (3 cards per row) with country flags
   - ✅ Switch toggles for country-level and status-level active/inactive states
   - ✅ Numbered status badges (1, 2, 3...) with custom names display
-  - ✅ Action buttons: Add Step, Notes, Reorder (in Option 1 layout)
+  - ✅ Action buttons: View, Edit, Delete, Notes, Reorder, Add Step
   - ✅ Status-level actions: Edit (pencil), Add Sub-Status (plus), View Sub-Statuses (list), Delete (trash)
   - ✅ Drag-and-drop reordering with @dnd-kit library
   - ✅ Sub-status sheet with Shadcn Sheet component showing all sub-statuses
@@ -161,6 +176,9 @@
   - ✅ Smooth animations and real-time UI updates
   - ✅ "System Status" badge for protected "New" status
   - ✅ Responsive design with proper spacing and gaps
+  - ✅ Pagination with Previous/Next buttons and page numbers (shadcn/ui)
+  - ✅ Smart ellipsis display for large page counts
+  - ✅ All pages: index, create, edit, show, notes, reorder
 - **Advanced Features:**
   - ✅ Custom dialog hook (useDialog) for state management
   - ✅ Multi-mode dialogs (Add/Edit status and sub-status)
@@ -171,12 +189,20 @@
   - ✅ Auto-calculation of order numbers for new statuses
   - ✅ Form validation with Laravel Form Requests
   - ✅ Type-safe routes with Laravel Wayfinder
-  - ✅ Comprehensive error handling
+  - ✅ Comprehensive error handling with null safety
+  - ✅ Generic PaginatedData<T> type for reusability
+  - ✅ Centralized TypeScript interfaces in global types file
 - **Architecture:**
   - **Global Statuses:** `application_processes` table contains template statuses shared across all countries
   - **Country Instances:** `rep_country_status` table creates customizable instances per representing country
   - **Sub-Statuses:** `sub_statuses` table allows country-specific sub-steps for each status
   - **Soft Deletes:** All deletions are soft (recoverable), with cascading soft deletes for relationships
+- **TypeScript Architecture:**
+  - **Global Types:** All model interfaces centralized in `resources/js/types/index.d.ts`
+  - **Exported Types:** Country, SubStatus, RepCountryStatus, RepresentingCountry, ApplicationProcess, PaginatedData<T>
+  - **Type Safety:** Full type safety across all 6 representing-countries pages (index, create, edit, show, notes, reorder)
+  - **Reusability:** Generic `PaginatedData<T>` type can be used for any paginated resource
+  - **Null Safety:** All optional fields properly typed with `?` and defensive checks in components
 - **Relationships:**
   - Country → Has One RepresentingCountry (nullable)
   - Country → Has Many Institutions → Has Many Courses
@@ -205,6 +231,7 @@
 - [ ] Run package migrations for roles and permissions tables
 - [ ] Define predefined roles (Admin, Branch Manager, Counsellor, Processing Officer, Front Office, Finance)
 - [ ] Define granular permissions (create-lead, edit-application, view-reports, etc.)
+- [ ] Role based routes because some routes will be the same like /admin/representing-countries and /branch/representing-countries
 - [ ] Create role assignment functionality
 - [ ] Build custom role creation interface with shadcn/ui
 - [ ] Implement middleware for permission checking
