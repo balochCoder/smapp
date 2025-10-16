@@ -512,15 +512,19 @@ export default function Index({ representingCountries: data }: Props) {
                 </div>
 
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {data.data.map((repCountry) => {
+                    {data?.data?.map((repCountry) => {
+                        // Skip if no id present
+                        if (!repCountry.id) return null;
+
                         const isExpanded = expandedCountries.has(
                             repCountry.id
                         );
+                        const statuses = repCountry.rep_country_statuses || [];
                         const visibleStatuses = isExpanded
-                            ? repCountry.rep_country_statuses
-                            : repCountry.rep_country_statuses.slice(0, 3);
+                            ? statuses
+                            : statuses.slice(0, 3);
                         const remainingCount =
-                            repCountry.rep_country_statuses.length - 3;
+                            statuses.length - 3;
 
                         return (
                             <Card
@@ -529,7 +533,7 @@ export default function Index({ representingCountries: data }: Props) {
                             >
                                 <CardHeader className="pb-3 px-4 pt-4">
                                     <div className="flex items-start gap-2">
-                                        {repCountry.country.flag && (
+                                        {repCountry.country?.flag && (
                                             <img
                                                 src={repCountry.country.flag}
                                                 alt={repCountry.country.name}
@@ -538,7 +542,7 @@ export default function Index({ representingCountries: data }: Props) {
                                         )}
                                         <div className="flex-1 min-w-0">
                                             <CardTitle className="text-sm font-semibold truncate">
-                                                {repCountry.country.name}
+                                                {repCountry.country?.name}
                                             </CardTitle>
                                             <div className="flex items-center gap-1.5 mt-1">
                                                 <Switch
@@ -572,11 +576,7 @@ export default function Index({ representingCountries: data }: Props) {
                                         <div className="flex items-center gap-1.5 text-xs text-gray-600">
                                             <FileText className="h-3 w-3" />
                                             <span>
-                                                {
-                                                    repCountry
-                                                        .rep_country_statuses
-                                                        .length
-                                                }{' '}
+                                                {statuses.length}{' '}
                                                 statuses
                                             </span>
                                         </div>
@@ -628,7 +628,7 @@ export default function Index({ representingCountries: data }: Props) {
                                                 size="sm"
                                                 variant="outline"
                                                 className="flex-1 h-7 text-xs px-2 text-red-600 hover:text-red-700 hover:border-red-600"
-                                                onClick={() => handleDelete(repCountry.id, repCountry.country.name)}
+                                                onClick={() => handleDelete(repCountry.id, repCountry.country?.name || 'Unknown Country')}
                                             >
                                                 <Trash2 className="mr-1 h-3 w-3" />
                                                 Delete
@@ -682,8 +682,7 @@ export default function Index({ representingCountries: data }: Props) {
                                             <span className="text-xs font-medium">
                                                 Statuses:
                                             </span>
-                                            {repCountry.rep_country_statuses
-                                                .length > 3 && (
+                                            {statuses.length > 3 && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -694,13 +693,7 @@ export default function Index({ representingCountries: data }: Props) {
                                                     }
                                                     className="h-5 px-1.5 text-xs"
                                                 >
-                                                    View All (
-                                                    {
-                                                        repCountry
-                                                            .rep_country_statuses
-                                                            .length
-                                                    }
-                                                    )
+                                                    View All ({statuses.length})
                                                     <ChevronDown
                                                         className={`ml-1 h-2.5 w-2.5 transition-transform ${
                                                             isExpanded
@@ -824,7 +817,7 @@ export default function Index({ representingCountries: data }: Props) {
                     })}
                 </div>
 
-                {data.data.length === 0 && (
+                {(!data?.data || data.data.length === 0) && (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">
                             <p className="text-muted-foreground mb-4">
@@ -866,7 +859,7 @@ export default function Index({ representingCountries: data }: Props) {
                                     </SheetTitle>
                                     <SheetDescription>
                                         Viewing sub-statuses for{' '}
-                                        {subStatusSheet.data.representingCountry.country.name}
+                                        {subStatusSheet.data.representingCountry.country?.name}
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-6 space-y-4">
@@ -979,7 +972,7 @@ export default function Index({ representingCountries: data }: Props) {
                                 in{' '}
                                 {
                                     editSubStatusDialog.data?.representingCountry
-                                        .country.name
+                                        .country?.name
                                 }
                             </DialogDescription>
                         </DialogHeader>
@@ -1074,7 +1067,7 @@ export default function Index({ representingCountries: data }: Props) {
                                 in{' '}
                                 {
                                     addSubStatusDialog.data?.representingCountry
-                                        .country.name
+                                        .country?.name
                                 }
                             </DialogDescription>
                         </DialogHeader>
@@ -1165,7 +1158,7 @@ export default function Index({ representingCountries: data }: Props) {
                                 Add a new application process step for{' '}
                                 {
                                     addStepDialog.data?.representingCountry
-                                        .country.name
+                                        .country?.name
                                 }
                             </DialogDescription>
                         </DialogHeader>
@@ -1319,7 +1312,7 @@ export default function Index({ representingCountries: data }: Props) {
                                 Customize the status name for{' '}
                                 {
                                     statusDialog.data?.representingCountry
-                                        .country.name
+                                        .country?.name
                                 }
                             </DialogDescription>
                         </DialogHeader>

@@ -18,6 +18,7 @@ use App\Actions\RepresentingCountries\UpdateSubStatus;
 use App\Helpers\CurrencyHelper;
 use App\Http\Requests\RepresentingCountries\StoreRepresentingCountryRequest;
 use App\Http\Requests\RepresentingCountries\UpdateRepresentingCountryRequest;
+use App\Http\Resources\RepresentingCountryResource;
 use App\Models\ApplicationProcess;
 use App\Models\Country;
 use App\Models\RepCountryStatus;
@@ -43,7 +44,7 @@ final class RepresentingCountryController extends Controller
             ->paginate(15);
 
         return Inertia::render('representing-countries/index', [
-            'representingCountries' => $representingCountries,
+            'representingCountries' => RepresentingCountryResource::collection($representingCountries),
         ]);
     }
 
@@ -97,7 +98,7 @@ final class RepresentingCountryController extends Controller
         ]);
 
         return Inertia::render('representing-countries/show', [
-            'representingCountry' => $representingCountry,
+            'representingCountry' => new RepresentingCountryResource($representingCountry),
         ]);
     }
 
@@ -127,7 +128,7 @@ final class RepresentingCountryController extends Controller
             ->get(['id', 'name', 'color']);
 
         return Inertia::render('representing-countries/edit', [
-            'representingCountry' => $representingCountry,
+            'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
             'applicationProcesses' => $applicationProcesses,
         ]);
     }
@@ -161,14 +162,14 @@ final class RepresentingCountryController extends Controller
     public function reorder(RepresentingCountry $representingCountry): Response
     {
         $representingCountry->load([
-            'country:id,name,flag',
+            'country',
             'repCountryStatuses' => function ($query) {
                 $query->orderBy('order');
             },
         ]);
 
         return Inertia::render('representing-countries/reorder', [
-            'representingCountry' => $representingCountry,
+            'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
         ]);
     }
 
@@ -246,14 +247,14 @@ final class RepresentingCountryController extends Controller
     public function notes(RepresentingCountry $representingCountry): Response
     {
         $representingCountry->load([
-            'country:id,name,flag',
+            'country',
             'repCountryStatuses' => function ($query) {
                 $query->orderBy('order');
             },
         ]);
 
         return Inertia::render('representing-countries/notes', [
-            'representingCountry' => $representingCountry,
+            'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
         ]);
     }
 
