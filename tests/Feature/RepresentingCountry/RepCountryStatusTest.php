@@ -169,6 +169,43 @@ it('requires authentication to add status', function () {
         ->assertRedirect(route('login'));
 });
 
+it('prevents adding duplicate status names for the same country', function () {
+    $repCountry = RepresentingCountry::factory()->create();
+    
+    RepCountryStatus::factory()->create([
+        'representing_country_id' => $repCountry->id,
+        'status_name' => 'Existing Status',
+    ]);
+
+    $response = post(route('representing-countries.add-status', $repCountry), [
+        'status_name' => 'Existing Status',
+    ]);
+
+    $response->assertSessionHasErrors(['status_name']);
+});
+
+it('allows same status name for different countries', function () {
+    $repCountry1 = RepresentingCountry::factory()->create();
+    $repCountry2 = RepresentingCountry::factory()->create();
+    
+    RepCountryStatus::factory()->create([
+        'representing_country_id' => $repCountry1->id,
+        'status_name' => 'Same Status',
+    ]);
+
+    $response = post(route('representing-countries.add-status', $repCountry2), [
+        'status_name' => 'Same Status',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+    
+    assertDatabaseHas('rep_country_status', [
+        'representing_country_id' => $repCountry2->id,
+        'status_name' => 'Same Status',
+    ]);
+});
+
 it('can add a sub-status to a status', function () {
     $representingCountry = RepresentingCountry::factory()->create();
     $status = RepCountryStatus::factory()->create([
@@ -240,6 +277,53 @@ it('requires authentication to add sub-status', function () {
         'name' => 'New Sub-Status',
     ])
         ->assertRedirect(route('login'));
+});
+
+it('prevents adding duplicate sub-status names for the same status', function () {
+    $repCountry = RepresentingCountry::factory()->create();
+    $status = RepCountryStatus::factory()->create([
+        'representing_country_id' => $repCountry->id,
+    ]);
+
+    $existingSubStatus = $status->subStatuses()->create([
+        'name' => 'Existing Sub-Status',
+        'order' => 1,
+        'is_active' => true,
+    ]);
+
+    $response = post(route('representing-countries.add-substatus', [$repCountry, $status]), [
+        'name' => 'Existing Sub-Status',
+    ]);
+
+    $response->assertSessionHasErrors(['name']);
+});
+
+it('allows same sub-status name for different statuses', function () {
+    $repCountry = RepresentingCountry::factory()->create();
+    $status1 = RepCountryStatus::factory()->create([
+        'representing_country_id' => $repCountry->id,
+    ]);
+    $status2 = RepCountryStatus::factory()->create([
+        'representing_country_id' => $repCountry->id,
+    ]);
+
+    $status1->subStatuses()->create([
+        'name' => 'Same Sub-Status',
+        'order' => 1,
+        'is_active' => true,
+    ]);
+
+    $response = post(route('representing-countries.add-substatus', [$repCountry, $status2]), [
+        'name' => 'Same Sub-Status',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+    
+    assertDatabaseHas('sub_statuses', [
+        'rep_country_status_id' => $status2->id,
+        'name' => 'Same Sub-Status',
+    ]);
 });
 
 it('can update a sub-status', function () {

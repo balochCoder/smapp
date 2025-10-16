@@ -175,21 +175,21 @@ export default function Index({ representingCountries: data }: Props) {
     const deleteSubStatusAlert = useDialog<DeleteSubStatusData>();
     const deleteRepCountryAlert = useDialog<DeleteRepCountryData>();
 
-    const { data: formData, setData, put, processing, errors, reset } = useForm({
+    const { data: formData, setData, put, processing, errors, reset, clearErrors } = useForm({
         status_id: 0,
         custom_name: '',
     });
 
-    const { data: addStepFormData, setData: setAddStepData, post, processing: addingStep, errors: addStepErrors, reset: resetAddStep } = useForm({
+    const { data: addStepFormData, setData: setAddStepData, post, processing: addingStep, errors: addStepErrors, reset: resetAddStep, clearErrors: clearAddStepErrors } = useForm({
         status_name: '',
     });
 
-    const { data: addSubStatusFormData, setData: setAddSubStatusData, post: postSubStatus, processing: addingSubStatus, errors: addSubStatusErrors, reset: resetAddSubStatus } = useForm({
+    const { data: addSubStatusFormData, setData: setAddSubStatusData, post: postSubStatus, processing: addingSubStatus, errors: addSubStatusErrors, reset: resetAddSubStatus, clearErrors: clearAddSubStatusErrors } = useForm({
         name: '',
         description: '',
     });
 
-    const { data: editSubStatusFormData, setData: setEditSubStatusData, put: putSubStatus, processing: editingSubStatus, errors: editSubStatusErrors, reset: resetEditSubStatus } = useForm({
+    const { data: editSubStatusFormData, setData: setEditSubStatusData, put: putSubStatus, processing: editingSubStatus, errors: editSubStatusErrors, reset: resetEditSubStatus, clearErrors: clearEditSubStatusErrors } = useForm({
         name: '',
         description: '',
     });
@@ -961,6 +961,7 @@ export default function Index({ representingCountries: data }: Props) {
                     open={editSubStatusDialog.isOpen}
                     onOpenChange={(open) => {
                         if (!open) {
+                            clearEditSubStatusErrors();
                             setTimeout(() => {
                                 editSubStatusDialog.close();
                                 resetEditSubStatus();
@@ -1028,6 +1029,7 @@ export default function Index({ representingCountries: data }: Props) {
                                     type="button"
                                     variant="outline"
                                     onClick={() => {
+                                        clearEditSubStatusErrors();
                                         // Trigger the dialog close animation
                                         const dialog = document.querySelector('[role="dialog"]');
                                         if (dialog) {
@@ -1054,6 +1056,7 @@ export default function Index({ representingCountries: data }: Props) {
                     open={addSubStatusDialog.isOpen}
                     onOpenChange={(open) => {
                         if (!open) {
+                            clearAddSubStatusErrors();
                             setTimeout(() => {
                                 addSubStatusDialog.close();
                                 resetAddSubStatus();
@@ -1121,6 +1124,7 @@ export default function Index({ representingCountries: data }: Props) {
                                     type="button"
                                     variant="outline"
                                     onClick={() => {
+                                        clearAddSubStatusErrors();
                                         const dialog = document.querySelector('[role="dialog"]');
                                         if (dialog) {
                                             dialog.setAttribute('data-state', 'closed');
@@ -1146,6 +1150,7 @@ export default function Index({ representingCountries: data }: Props) {
                     open={addStepDialog.isOpen}
                     onOpenChange={(open) => {
                         if (!open) {
+                            clearAddStepErrors();
                             setTimeout(() => {
                                 addStepDialog.close();
                                 resetAddStep();
@@ -1190,6 +1195,7 @@ export default function Index({ representingCountries: data }: Props) {
                                     type="button"
                                     variant="outline"
                                     onClick={() => {
+                                        clearAddStepErrors();
                                         const dialog = document.querySelector('[role="dialog"]');
                                         if (dialog) {
                                             dialog.setAttribute('data-state', 'closed');
@@ -1298,6 +1304,7 @@ export default function Index({ representingCountries: data }: Props) {
                     open={statusDialog.isOpen}
                     onOpenChange={(open) => {
                         if (!open) {
+                            clearErrors();
                             setTimeout(() => {
                                 statusDialog.close();
                                 reset();
@@ -1352,6 +1359,7 @@ export default function Index({ representingCountries: data }: Props) {
                                     type="button"
                                     variant="outline"
                                     onClick={() => {
+                                        clearErrors();
                                         const dialog = document.querySelector('[role="dialog"]');
                                         if (dialog) {
                                             dialog.setAttribute('data-state', 'closed');

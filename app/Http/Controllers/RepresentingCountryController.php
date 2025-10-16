@@ -16,6 +16,7 @@ use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -105,6 +106,7 @@ final class RepresentingCountryController extends Controller
         $allProcesses = ApplicationProcess::all();
         $representingCountry->application_processes = $representingCountry->repCountryStatuses->map(function ($status) use ($allProcesses) {
             $process = $allProcesses->firstWhere('name', $status->status_name);
+
             return [
                 'id' => $process?->id ?? $status->status_name,
                 'name' => $status->custom_name ?? $status->status_name,
@@ -284,7 +286,15 @@ final class RepresentingCountryController extends Controller
         Request $request
     ): RedirectResponse {
         $validated = $request->validate([
-            'status_name' => 'required|string|max:255',
+            'status_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('rep_country_status', 'status_name')
+                    ->where('representing_country_id', $representingCountry->id),
+            ],
+        ], [
+            'status_name.unique' => 'This status already exists for this country.',
         ]);
 
         // Get the max order for this representing country
@@ -313,8 +323,16 @@ final class RepresentingCountryController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('sub_statuses', 'name')
+                    ->where('rep_country_status_id', $status->id),
+            ],
             'description' => 'nullable|string|max:1000',
+        ], [
+            'name.unique' => 'This sub-status already exists for this status.',
         ]);
 
         // Get the max order for this status's sub-statuses
@@ -381,12 +399,21 @@ final class RepresentingCountryController extends Controller
             abort(404);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
         $subStatus = $status->subStatuses()->findOrFail($subStatusId);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('sub_statuses', 'name')
+                    ->where('rep_country_status_id', $status->id)
+                    ->ignore($subStatus->id),
+            ],
+            'description' => 'nullable|string|max:1000',
+        ], [
+            'name.unique' => 'This sub-status name already exists for this status.',
+        ]);
 
         $subStatus->update([
             'name' => $validated['name'],
