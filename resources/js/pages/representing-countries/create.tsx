@@ -90,8 +90,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
     };
 
     const handleProcessChange = (selected: string[]) => {
-        // Always keep 'New' selected
-        setData('application_process_ids', Array.from(new Set([newProcessId, ...selected.filter((id) => id !== newProcessId)])));
+        // MultiSelect component now automatically preserves disabled options
+        setData('application_process_ids', selected);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -129,8 +129,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-blue-100 p-2">
-                                    <Globe className="h-4 w-4 text-blue-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-blue-100 dark:bg-blue-900 p-2">
+                                    <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">
@@ -189,7 +189,7 @@ export default function Create({ countries, applicationProcesses }: Props) {
                             </div>
 
                             {selectedCountryData && (
-                                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 p-4">
                                     <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
                                         <img
                                             src={selectedCountryData.flag}
@@ -197,10 +197,10 @@ export default function Create({ countries, applicationProcesses }: Props) {
                                             className="h-6 w-8 flex-shrink-0 rounded shadow-sm"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <h3 className="text-sm font-medium text-blue-900 sm:text-base">
+                                            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 sm:text-base">
                                                 {selectedCountryData.name} selected
                                             </h3>
-                                            <p className="text-xs text-blue-700 sm:text-sm">
+                                            <p className="text-xs text-blue-700 dark:text-blue-300 sm:text-sm">
                                                 You're adding {selectedCountryData.name} as a representing country
                                             </p>
                                         </div>
@@ -214,8 +214,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-amber-100 p-2">
-                                    <FileText className="h-4 w-4 text-amber-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900 p-2">
+                                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">
@@ -250,8 +250,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
                         <Card>
                             <CardHeader>
                                 <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                    <div className="w-fit flex-shrink-0 rounded-lg bg-green-100 p-2">
-                                        <Briefcase className="h-4 w-4 text-green-600" />
+                                    <div className="w-fit flex-shrink-0 rounded-lg bg-green-100 dark:bg-green-900 p-2">
+                                        <Briefcase className="h-4 w-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <CardTitle className="text-lg sm:text-xl">
@@ -284,8 +284,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
                         <Card>
                             <CardHeader>
                                 <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                    <div className="w-fit flex-shrink-0 rounded-lg bg-purple-100 p-2">
-                                        <Gift className="h-4 w-4 text-purple-600" />
+                                    <div className="w-fit flex-shrink-0 rounded-lg bg-purple-100 dark:bg-purple-900 p-2">
+                                        <Gift className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <CardTitle className="text-lg sm:text-xl">
@@ -320,8 +320,8 @@ export default function Create({ countries, applicationProcesses }: Props) {
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-indigo-100 p-2">
-                                    <Settings className="h-4 w-4 text-indigo-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-indigo-100 dark:bg-indigo-900 p-2">
+                                    <Settings className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">

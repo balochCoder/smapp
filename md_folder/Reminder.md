@@ -1,6 +1,3 @@
-
-Dark Mode
-Mobile Mode
 Other Dashboards
 Saas Application
 Sonner

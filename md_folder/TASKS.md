@@ -113,6 +113,8 @@
 - [x] Implement SubStatus → RepCountryStatus belongsTo relationship
 - [x] Seed 12 default application statuses (New, Application On Hold, Pre-Application Process, etc.)
 - [x] Auto-create status instances for each representing country upon creation
+- [x] Create RepCountryStatusSeeder to automatically attach all admissions processes to all representing countries
+- [x] Integrate RepCountryStatusSeeder into DatabaseSeeder (runs after ApplicationProcessSeeder)
 - [x] Implement representing country CRUD operations (Actions, Requests, Controllers)
 - [x] Build representing country management interface with shadcn/ui (Card-based grid layout with toggles, action buttons, expandable status steps)
 - [x] Implement country-level active/inactive toggle
@@ -147,10 +149,39 @@
 - [x] Centralize all TypeScript interfaces to global types file (index.d.ts)
 - [x] Create reusable PaginatedData<T> generic type for all paginated resources
 - [x] Add defensive programming for undefined/null values across all pages
+- [x] Fix MultiSelect component to preserve disabled options when clearing (October 17, 2025)
+- [x] Implement automatic preservation of "New" status in MultiSelect clear functionality
+- [x] Update RepresentingCountryResource to properly pass application_processes using isset() instead of property_exists()
+- [x] Add resetOnDefaultValueChange={false} prop to MultiSelect in edit form to prevent unwanted resets
+- [x] Fix handleClear() in MultiSelect to keep all disabled options when clearing selection
+- [x] Fix clearExtraOptions() in MultiSelect to respect disabled options when limiting display count
+- [x] Implement comprehensive dark mode support across all representing countries pages (October 17, 2025)
+- [x] Add dark mode classes to index.tsx (text colors, background colors)
+- [x] Add dark mode classes to create.tsx (icon containers, selected country card)
+- [x] Add dark mode classes to edit.tsx (all section headers and icons)
+- [x] Add dark mode classes to reorder.tsx (drag handles, badges, info cards)
+- [x] Verify show.tsx and notes.tsx dark mode compatibility (already compatible via shadcn/ui)
 - **Related User Stories:** New requirement - Country representation
 - **Priority:** P0 - Critical
-- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, pagination, and advanced features implemented
-- **Latest Updates (October 16, 2025):**
+- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, pagination, dark mode, and advanced features implemented
+- **Latest Updates (October 17, 2025):**
+  - ✅ Created RepCountryStatusSeeder to automatically attach all 12 admissions processes to all representing countries
+  - ✅ Seeder uses updateOrCreate() to prevent duplicates and can be run multiple times safely
+  - ✅ Database verified: 84 records created (7 representing countries × 12 application processes)
+  - ✅ Fixed MultiSelect component to preserve disabled options (like "New" status) when clicking clear button
+  - ✅ Fixed RepresentingCountryResource to properly include application_processes in edit form
+  - ✅ Changed property_exists() to isset() for dynamically added properties in resource
+  - ✅ Updated handleClear() to filter and keep all disabled options when clearing
+  - ✅ Updated clearExtraOptions() to respect disabled options when limiting display count
+  - ✅ Simplified handleProcessChange in both create.tsx and edit.tsx (component now handles disabled preservation automatically)
+  - ✅ MultiSelect now automatically protects any disabled option across all interactions (manual deselect, clear button, clear dropdown, extra options clear)
+  - ✅ Implemented comprehensive dark mode support across all 6 representing countries pages
+  - ✅ Added dark: variants for all color classes (bg-*, text-*, border-*) across index, create, edit, and reorder pages
+  - ✅ Color mappings: blue-100→blue-900, green-100→green-900, amber-100→amber-900, purple-100→purple-900, indigo-100→indigo-900, gray-50→gray-800, gray-200→gray-700
+  - ✅ Icon colors adapted for dark mode visibility (600→400 variants)
+  - ✅ Consistent dark mode theming across all section headers and cards
+  - ✅ No linting errors - all changes validated and clean
+- **Previous Updates (October 16, 2025):**
   - ✅ Fixed critical browser errors: Cannot read properties of undefined (reading 'slice', 'flag', 'toString')
   - ✅ Fixed Laravel MissingAttributeException in RepresentingCountryResource using property_exists()
   - ✅ Added pagination with shadcn/ui component (12 items per page, 3-column grid optimized)
@@ -179,6 +210,11 @@
   - ✅ Pagination with Previous/Next buttons and page numbers (shadcn/ui)
   - ✅ Smart ellipsis display for large page counts
   - ✅ All pages: index, create, edit, show, notes, reorder
+  - ✅ **Full dark mode support across all pages** (October 17, 2025)
+  - ✅ Icon container backgrounds adapt to dark mode (100→900 color variants)
+  - ✅ Text colors optimized for readability in both light and dark themes
+  - ✅ Consistent color palette across all section headers
+  - ✅ Proper contrast ratios maintained in dark mode
 - **Advanced Features:**
   - ✅ Custom dialog hook (useDialog) for state management
   - ✅ Multi-mode dialogs (Add/Edit status and sub-status)
@@ -192,6 +228,12 @@
   - ✅ Comprehensive error handling with null safety
   - ✅ Generic PaginatedData<T> type for reusability
   - ✅ Centralized TypeScript interfaces in global types file
+  - ✅ RepCountryStatusSeeder for automatic status assignment to all countries (October 17, 2025)
+  - ✅ Enhanced MultiSelect component with intelligent disabled option preservation (October 17, 2025)
+  - ✅ MultiSelect automatically protects disabled options across all user interactions
+  - ✅ Comprehensive dark mode implementation with Tailwind CSS v4 dark: variants (October 17, 2025)
+  - ✅ Seamless theme switching via useAppearance hook (light/dark/system)
+  - ✅ All color classes properly mapped for dark mode compatibility
 - **Architecture:**
   - **Global Statuses:** `application_processes` table contains template statuses shared across all countries
   - **Country Instances:** `rep_country_status` table creates customizable instances per representing country

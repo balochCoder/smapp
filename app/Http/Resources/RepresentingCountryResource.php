@@ -18,6 +18,7 @@ final class RepresentingCountryResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'country_id' => $this->country_id,
             'monthly_living_cost' => $this->monthly_living_cost,
             'currency' => $this->currency,
             'visa_requirements' => $this->visa_requirements,
@@ -33,7 +34,7 @@ final class RepresentingCountryResource extends JsonResource
             ]),
             'rep_country_statuses' => RepCountryStatusResource::collection($this->whenLoaded('repCountryStatuses')),
             'application_processes' => $this->when(
-                property_exists($this->resource, 'application_processes') && $this->application_processes !== null,
+                isset($this->application_processes) && $this->application_processes !== null,
                 fn () => $this->application_processes
             ),
         ];

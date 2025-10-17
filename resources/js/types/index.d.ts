@@ -69,6 +69,7 @@ export interface RepCountryStatus {
 
 export interface RepresentingCountry {
     id: string;
+    country_id: string;
     monthly_living_cost: string | null;
     currency?: string;
     visa_requirements?: string | null;

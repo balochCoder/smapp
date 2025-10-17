@@ -25,6 +25,19 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
     Sheet,
     SheetContent,
     SheetDescription,
@@ -45,6 +58,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import {
     type BreadcrumbItem,
     type Country,
@@ -54,7 +68,7 @@ import {
     type ApplicationProcess,
     type PaginatedData,
 } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     PlusIcon,
     FileText,
@@ -67,6 +81,10 @@ import {
     Trash2,
     Eye,
     Edit,
+    X,
+    Filter,
+    Check,
+    ChevronsUpDown,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import * as representingCountries from '@/routes/representing-countries';
@@ -75,6 +93,11 @@ import { useDialog } from '@/hooks/use-dialog';
 
 interface Props {
     representingCountries: PaginatedData<RepresentingCountry>;
+    availableCountries?: Country[];
+    filters?: {
+        country?: string;
+        status?: string;
+    };
 }
 
 interface StatusDialogData {
@@ -129,11 +152,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ representingCountries: data }: Props) {
+export default function Index({ representingCountries: data, availableCountries, filters }: Props) {
     const [expandedCountries, setExpandedCountries] = useState<Set<string>>(
         new Set()
     );
     const [isSheetClosing, setIsSheetClosing] = useState(false);
+    const [countryPopoverOpen, setCountryPopoverOpen] = useState(false);
+
+    // Get filters from URL
+    const statusFilter = (filters?.status as 'all' | 'active' | 'inactive') || 'all';
+    const countryFilter = filters?.country || 'all';
 
     const statusDialog = useDialog<StatusDialogData>();
     const subStatusSheet = useDialog<SubStatusSheetData>();
@@ -501,9 +529,50 @@ export default function Index({ representingCountries: data }: Props) {
     const goToPage = (page: number) => {
         router.get(
             representingCountries.index().url,
-            { page },
+            {
+                page,
+                country: countryFilter !== 'all' ? countryFilter : undefined,
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+            },
             { preserveScroll: true, preserveState: true }
         );
+    };
+
+    const handleClearFilters = () => {
+        router.get(
+            representingCountries.index().url,
+            {},
+            { preserveScroll: true, preserveState: true }
+        );
+    };
+
+    const handleCountrySelect = (countryId: string) => {
+        setCountryPopoverOpen(false);
+        router.get(
+            representingCountries.index().url,
+            {
+                country: countryId === 'all' ? undefined : countryId,
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+            },
+            { preserveScroll: true, preserveState: true }
+        );
+    };
+
+    const handleStatusSelect = (status: 'all' | 'active' | 'inactive') => {
+        router.get(
+            representingCountries.index().url,
+            {
+                country: countryFilter !== 'all' ? countryFilter : undefined,
+                status: status !== 'all' ? status : undefined,
+            },
+            { preserveScroll: true, preserveState: true }
+        );
+    };
+
+    const getSelectedCountryName = () => {
+        if (countryFilter === 'all') return 'All Countries';
+        const country = availableCountries?.find((c) => c.id === countryFilter);
+        return country ? country.name : 'All Countries';
     };
 
     return (
@@ -511,7 +580,7 @@ export default function Index({ representingCountries: data }: Props) {
             <Head title="Representing Countries" />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
                             Representing Countries
@@ -522,12 +591,161 @@ export default function Index({ representingCountries: data }: Props) {
                         </p>
                     </div>
                     <Link href={representingCountries.create()}>
-                        <Button>
+                        <Button className="w-full sm:w-auto">
                             <PlusIcon className="mr-2 h-4 w-4" />
                             Add Country
                         </Button>
                     </Link>
                 </div>
+
+                {/* Filter Section */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col gap-3">
+                            {/* Country and Status Filters */}
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                {/* Country Filter Dropdown */}
+                                {availableCountries && availableCountries.length > 0 && (
+                                    <div className="space-y-2 sm:w-[280px]">
+                                        <Label htmlFor="country-filter" className="text-sm font-medium">
+                                            Filter by Country
+                                        </Label>
+                                        <Popover open={countryPopoverOpen} onOpenChange={setCountryPopoverOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    id="country-filter"
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={countryPopoverOpen}
+                                                    className="w-full justify-between"
+                                                >
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        {countryFilter !== 'all' && (
+                                                            <img
+                                                                src={availableCountries.find((c) => c.id === countryFilter)?.flag}
+                                                                alt=""
+                                                                className="h-3 w-4 flex-shrink-0 rounded"
+                                                            />
+                                                        )}
+                                                        <span className="truncate">{getSelectedCountryName()}</span>
+                                                    </div>
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-full p-0 sm:w-[280px]">
+                                                <Command>
+                                                    <CommandInput placeholder="Search countries..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No country found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            <CommandItem
+                                                                value="all"
+                                                                onSelect={() => handleCountrySelect('all')}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        'mr-2 h-4 w-4',
+                                                                        countryFilter === 'all' ? 'opacity-100' : 'opacity-0'
+                                                                    )}
+                                                                />
+                                                                All Countries
+                                                            </CommandItem>
+                                                            {availableCountries.map((country) => (
+                                                                <CommandItem
+                                                                    key={country.id}
+                                                                    value={country.name}
+                                                                    onSelect={() => handleCountrySelect(country.id)}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            'mr-2 h-4 w-4',
+                                                                            countryFilter === country.id ? 'opacity-100' : 'opacity-0'
+                                                                        )}
+                                                                    />
+                                                                    <div className="flex min-w-0 items-center gap-2">
+                                                                        <img
+                                                                            src={country.flag}
+                                                                            alt={country.name}
+                                                                            className="h-3 w-4 flex-shrink-0 rounded"
+                                                                        />
+                                                                        <span className="truncate">{country.name}</span>
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
+
+                                {/* Status Filter and Clear Button */}
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                    <div className="flex items-center gap-2">
+                                        <Filter className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm font-medium">Status:</span>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => handleStatusSelect('all')}
+                                            >
+                                                All
+                                            </Button>
+                                            <Button
+                                                variant={statusFilter === 'active' ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => handleStatusSelect('active')}
+                                            >
+                                                Active
+                                            </Button>
+                                            <Button
+                                                variant={statusFilter === 'inactive' ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => handleStatusSelect('inactive')}
+                                            >
+                                                Inactive
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Clear Filters Button */}
+                                    {(statusFilter !== 'all' || countryFilter !== 'all') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleClearFilters}
+                                            className="w-full sm:w-auto"
+                                        >
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear Filters
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Filter Summary */}
+                            {(statusFilter !== 'all' || countryFilter !== 'all') && (
+                                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground border-t pt-3">
+                                    <span>
+                                        {data?.meta?.total || 0} {(data?.meta?.total || 0) === 1 ? 'country' : 'countries'} found
+                                    </span>
+                                    {statusFilter !== 'all' && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            Status: {statusFilter}
+                                        </Badge>
+                                    )}
+                                    {countryFilter !== 'all' && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            Country: {getSelectedCountryName()}
+                                        </Badge>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {data?.data?.map((repCountry) => {
@@ -576,8 +794,8 @@ export default function Index({ representingCountries: data }: Props) {
                                                 <span
                                                     className={`text-xs font-medium ${
                                                     repCountry.is_active
-                                                        ? 'text-blue-600'
-                                                        : 'text-gray-500'
+                                                        ? 'text-blue-600 dark:text-blue-400'
+                                                        : 'text-gray-500 dark:text-gray-400'
                                                     }`}
                                                 >
                                                     {repCountry.is_active
@@ -591,14 +809,14 @@ export default function Index({ representingCountries: data }: Props) {
 
                                 <CardContent className="px-4 pb-4 space-y-3">
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
                                             <FileText className="h-3 w-3" />
                                             <span>
                                                 {statuses.length}{' '}
                                                 statuses
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
                                             <Calendar className="h-3 w-3" />
                                             <span>
                                                 Added:{' '}
@@ -607,7 +825,7 @@ export default function Index({ representingCountries: data }: Props) {
                                                 )}
                                             </span>
                                         </div>
-                                       
+
                                     </div>
 
                                     <div className="space-y-1">
@@ -731,7 +949,7 @@ export default function Index({ representingCountries: data }: Props) {
                                                     return (
                                                     <div
                                                         key={status.id}
-                                                        className="flex items-center gap-2 p-1.5 bg-gray-50 rounded"
+                                                        className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-800 rounded"
                                                     >
                                                         <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                                                             {index + 1}
@@ -822,7 +1040,7 @@ export default function Index({ representingCountries: data }: Props) {
 
                                             {!isExpanded && remainingCount > 0 && (
                                                 <div className="text-center py-1">
-                                                    <span className="text-xs text-gray-500">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         +{remainingCount} more
                                                     </span>
                                                 </div>
@@ -901,18 +1119,36 @@ export default function Index({ representingCountries: data }: Props) {
                     </Pagination>
                 )}
 
+                {/* Empty State */}
                 {(!data?.data || data.data.length === 0) && (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">
-                            <p className="text-muted-foreground mb-4">
-                                No representing countries added yet
-                            </p>
-                            <Link href={representingCountries.create()}>
-                                <Button>
-                                    <PlusIcon className="mr-2 h-4 w-4" />
-                                    Add Your First Country
-                                </Button>
-                            </Link>
+                            {(statusFilter !== 'all' || countryFilter !== 'all') ? (
+                                <>
+                                    <p className="text-muted-foreground mb-4">
+                                        No countries match your filters
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleClearFilters}
+                                    >
+                                        <X className="mr-2 h-4 w-4" />
+                                        Clear Filters
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-muted-foreground mb-4">
+                                        No representing countries added yet
+                                    </p>
+                                    <Link href={representingCountries.create()}>
+                                        <Button>
+                                            <PlusIcon className="mr-2 h-4 w-4" />
+                                            Add Your First Country
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 )}

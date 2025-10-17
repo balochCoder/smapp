@@ -9,6 +9,7 @@ use App\Actions\RepresentingCountries\AddSubStatusToStatus;
 use App\Actions\RepresentingCountries\DeleteRepresentingCountry;
 use App\Actions\RepresentingCountries\DeleteStatus;
 use App\Actions\RepresentingCountries\DeleteSubStatus;
+use App\Actions\RepresentingCountries\GetFilteredRepresentingCountries;
 use App\Actions\RepresentingCountries\StoreRepresentingCountry;
 use App\Actions\RepresentingCountries\UpdateRepresentingCountry;
 use App\Actions\RepresentingCountries\UpdateStatusName;
@@ -31,20 +32,26 @@ use Inertia\Response;
 
 final class RepresentingCountryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request, GetFilteredRepresentingCountries $getFilteredAction): Response
     {
-        $representingCountries = RepresentingCountry::query()
-            ->with([
-                'country',
-                'repCountryStatuses' => function ($query) {
-                    $query->with('subStatuses')->orderBy('order');
-                },
-            ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        $representingCountries = $getFilteredAction->handle(
+            $request->input('country'),
+            $request->input('status')
+        );
+
+        // Get all countries that have representing country records for the filter
+        $availableCountries = Country::query()
+            ->whereHas('representingCountry')
+            ->orderBy('name')
+            ->get(['id', 'name', 'flag']);
 
         return Inertia::render('representing-countries/index', [
             'representingCountries' => RepresentingCountryResource::collection($representingCountries),
+            'availableCountries' => $availableCountries,
+            'filters' => [
+                'country' => $request->input('country'),
+                'status' => $request->input('status'),
+            ],
         ]);
     }
 
@@ -117,11 +124,13 @@ final class RepresentingCountryController extends Controller
             $process = $allProcesses->firstWhere('name', $status->status_name);
 
             return [
-                'id' => $process?->id ?? $status->status_name,
+                'id' => $process?->id,
                 'name' => $status->custom_name ?? $status->status_name,
                 'color' => $process?->color ?? 'gray',
             ];
-        });
+        })->filter(function ($process) {
+            return $process['id'] !== null;
+        })->values();
 
         $applicationProcesses = ApplicationProcess::query()
             ->orderBy('order')

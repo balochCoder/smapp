@@ -52,7 +52,7 @@ export default function Edit({
 }: Props) {
     const newProcess = applicationProcesses.find((p) => p.name === 'New');
     const newProcessId = newProcess ? newProcess.id : '';
-    
+
     const { data, setData, put, processing, errors } = useForm({
         monthly_living_cost: representingCountry.monthly_living_cost || '',
         visa_requirements: representingCountry.visa_requirements || '',
@@ -67,8 +67,8 @@ export default function Edit({
     };
 
     const handleProcessChange = (selected: string[]) => {
-        // Always keep 'New' selected
-        setData('application_process_ids', Array.from(new Set([newProcessId, ...selected.filter((id) => id !== newProcessId)])));
+        // MultiSelect component now automatically preserves disabled options
+        setData('application_process_ids', selected);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -113,8 +113,8 @@ export default function Edit({
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-blue-100 p-2">
-                                    <Globe className="h-4 w-4 text-blue-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-blue-100 dark:bg-blue-900 p-2">
+                                    <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">
@@ -150,8 +150,8 @@ export default function Edit({
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-amber-100 p-2">
-                                    <FileText className="h-4 w-4 text-amber-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900 p-2">
+                                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">
@@ -186,8 +186,8 @@ export default function Edit({
                         <Card>
                             <CardHeader>
                                 <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                    <div className="w-fit flex-shrink-0 rounded-lg bg-green-100 p-2">
-                                        <Briefcase className="h-4 w-4 text-green-600" />
+                                    <div className="w-fit flex-shrink-0 rounded-lg bg-green-100 dark:bg-green-900 p-2">
+                                        <Briefcase className="h-4 w-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <CardTitle className="text-lg sm:text-xl">
@@ -220,8 +220,8 @@ export default function Edit({
                         <Card>
                             <CardHeader>
                                 <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                    <div className="w-fit flex-shrink-0 rounded-lg bg-purple-100 p-2">
-                                        <Gift className="h-4 w-4 text-purple-600" />
+                                    <div className="w-fit flex-shrink-0 rounded-lg bg-purple-100 dark:bg-purple-900 p-2">
+                                        <Gift className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <CardTitle className="text-lg sm:text-xl">
@@ -256,8 +256,8 @@ export default function Edit({
                     <Card>
                         <CardHeader>
                             <div className="flex min-w-0 flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                <div className="w-fit flex-shrink-0 rounded-lg bg-indigo-100 p-2">
-                                    <Settings className="h-4 w-4 text-indigo-600" />
+                                <div className="w-fit flex-shrink-0 rounded-lg bg-indigo-100 dark:bg-indigo-900 p-2">
+                                    <Settings className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <CardTitle className="text-lg sm:text-xl">
@@ -286,6 +286,7 @@ export default function Edit({
                                             defaultValue={data.application_process_ids}
                                             placeholder="Select application steps"
                                             className="w-full"
+                                            resetOnDefaultValueChange={false}
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground">

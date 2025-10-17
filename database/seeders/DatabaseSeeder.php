@@ -28,7 +28,8 @@ final class DatabaseSeeder extends Seeder
         // Seed all tables in order (respecting foreign key relationships)
         $this->call([
             RepresentingCountrySeeder::class,     // Needs countries
-            ApplicationProcessSeeder::class,      // Needs representing countries
+            ApplicationProcessSeeder::class,      // Independent
+            RepCountryStatusSeeder::class,        // Needs representing countries and application processes
             BranchSeeder::class,                  // Needs users (auto-created by factories)
             LeadSeeder::class,                    // Needs branches, users
             StudentSeeder::class,                 // Needs branches, users, optionally leads
