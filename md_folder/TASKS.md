@@ -161,14 +161,32 @@
 - [x] Add dark mode classes to edit.tsx (all section headers and icons)
 - [x] Add dark mode classes to reorder.tsx (drag handles, badges, info cards)
 - [x] Verify show.tsx and notes.tsx dark mode compatibility (already compatible via shadcn/ui)
+- [x] Add sub-status active/inactive toggle with Switch component (October 17, 2025)
+- [x] Create backend route for toggleSubStatusActive functionality
+- [x] Implement controller method to toggle sub-status is_active state
+- [x] Add real-time UI updates for sub-status toggle in sheet
+- [x] Fix empty state "Add Sub-Status" button to open dialog
+- [x] Improve sub-status sheet styling and layout (wider width, better padding)
+- [x] Add statistics cards to index page (Total Countries, Active Countries)
+- [x] Fetch statistics from backend (unaffected by filters/search)
+- [x] Position statistics between filter section and country grid
+- [x] Implement proper sheet structure with fixed header/footer and scrollable content
 - **Related User Stories:** New requirement - Country representation
 - **Priority:** P0 - Critical
-- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, pagination, dark mode, and advanced features implemented
+- **Status:** ✅ **FULLY COMPLETED** - All database, UI, CRUD operations, pagination, dark mode, sub-status management, and statistics implemented
 - **Latest Updates (October 17, 2025):**
   - ✅ Created RepCountryStatusSeeder to automatically attach all 12 admissions processes to all representing countries
   - ✅ Seeder uses updateOrCreate() to prevent duplicates and can be run multiple times safely
   - ✅ Database verified: 84 records created (7 representing countries × 12 application processes)
   - ✅ Fixed MultiSelect component to preserve disabled options (like "New" status) when clicking clear button
+  - ✅ Implemented sub-status active/inactive toggle with Switch component in sub-status sheet
+  - ✅ Created backend route and controller method for toggleSubStatusActive (POST route with real-time updates)
+  - ✅ Fixed empty state "Add Sub-Status" button to properly trigger dialog opening
+  - ✅ Enhanced sub-status sheet with improved layout: wider width (sm:max-w-xl), proper padding structure, fixed header/footer
+  - ✅ Added statistics cards (Total Countries, Active Countries) to index page
+  - ✅ Implemented backend statistics calculation unaffected by filters/search
+  - ✅ Positioned statistics section between filters and country grid for better UX
+  - ✅ Improved sheet structure with scrollable content area and fixed sections
   - ✅ Fixed RepresentingCountryResource to properly include application_processes in edit form
   - ✅ Changed property_exists() to isset() for dynamically added properties in resource
   - ✅ Updated handleClear() to filter and keep all disabled options when clearing
@@ -198,11 +216,16 @@
 - **UI Features Implemented:**
   - ✅ Compact card-based grid layout (3 cards per row) with country flags
   - ✅ Switch toggles for country-level and status-level active/inactive states
+  - ✅ Switch toggles for sub-status-level active/inactive states (October 17, 2025)
   - ✅ Numbered status badges (1, 2, 3...) with custom names display
   - ✅ Action buttons: View, Edit, Delete, Notes, Reorder, Add Step
   - ✅ Status-level actions: Edit (pencil), Add Sub-Status (plus), View Sub-Statuses (list), Delete (trash)
   - ✅ Drag-and-drop reordering with @dnd-kit library
   - ✅ Sub-status sheet with Shadcn Sheet component showing all sub-statuses
+  - ✅ Enhanced sub-status sheet with wider width (sm:max-w-xl) and improved padding (October 17, 2025)
+  - ✅ Fixed header and footer in sheet with scrollable content area
+  - ✅ Statistics cards showing Total Countries and Active Countries (backend-calculated)
+  - ✅ Statistics positioned between filters and country grid
   - ✅ AlertDialog confirmations for delete operations (replacing native confirm)
   - ✅ Smooth animations and real-time UI updates
   - ✅ "System Status" badge for protected "New" status
@@ -234,6 +257,10 @@
   - ✅ Comprehensive dark mode implementation with Tailwind CSS v4 dark: variants (October 17, 2025)
   - ✅ Seamless theme switching via useAppearance hook (light/dark/system)
   - ✅ All color classes properly mapped for dark mode compatibility
+  - ✅ Sub-status active/inactive toggle with real-time UI updates (October 17, 2025)
+  - ✅ Backend route for toggleSubStatusActive with proper validation
+  - ✅ Statistics cards with backend calculation (unaffected by filters)
+  - ✅ Enhanced sheet layout with proper fixed header/footer and scrollable content
 - **Architecture:**
   - **Global Statuses:** `application_processes` table contains template statuses shared across all countries
   - **Country Instances:** `rep_country_status` table creates customizable instances per representing country
