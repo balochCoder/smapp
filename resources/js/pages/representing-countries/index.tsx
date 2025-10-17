@@ -793,8 +793,8 @@ export default function Index({ representingCountries: data, availableCountries,
                     <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                                    <List className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/10 dark:bg-info/30">
+                                    <List className="h-5 w-5 text-info dark:text-info-foreground" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="text-sm text-muted-foreground">Total Countries</p>
@@ -808,8 +808,8 @@ export default function Index({ representingCountries: data, availableCountries,
                     <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 dark:bg-success/30">
+                                    <Check className="h-5 w-5 text-success dark:text-success-foreground" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="text-sm text-muted-foreground">Active Countries</p>
@@ -869,8 +869,8 @@ export default function Index({ representingCountries: data, availableCountries,
                                                 <span
                                                     className={`text-xs font-medium ${
                                                     repCountry.is_active
-                                                        ? 'text-blue-600 dark:text-blue-400'
-                                                        : 'text-gray-500 dark:text-gray-400'
+                                                        ? 'text-info dark:text-info-foreground'
+                                                        : 'text-muted-foreground'
                                                     }`}
                                                 >
                                                     {repCountry.is_active
@@ -884,14 +884,14 @@ export default function Index({ representingCountries: data, availableCountries,
 
                                 <CardContent className="px-4 pb-4 space-y-3">
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <FileText className="h-3 w-3" />
                                             <span>
                                                 {statuses.length}{' '}
                                                 statuses
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <Calendar className="h-3 w-3" />
                                             <span>
                                                 Added:{' '}
@@ -938,7 +938,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="flex-1 h-7 text-xs px-2 text-red-600 hover:text-red-700 hover:border-red-600"
+                                                className="flex-1 h-7 text-xs px-2 text-destructive hover:text-destructive/90 hover:border-destructive"
                                                 onClick={() => handleDelete(repCountry.id, repCountry.country?.name || 'Unknown Country')}
                                             >
                                                 <Trash2 className="mr-1 h-3 w-3" />
@@ -1024,7 +1024,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                                     return (
                                                     <div
                                                         key={status.id}
-                                                        className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-800 rounded"
+                                                        className="flex items-center gap-2 p-1.5 bg-muted/50 dark:bg-muted rounded"
                                                     >
                                                         <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                                                             {index + 1}
@@ -1090,7 +1090,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                                                                        className="h-5 w-5 p-0 text-destructive hover:text-destructive/90"
                                                                         onClick={() =>
                                                                             handleDeleteStatus(
                                                                                 repCountry.id,
@@ -1115,7 +1115,7 @@ export default function Index({ representingCountries: data, availableCountries,
 
                                             {!isExpanded && remainingCount > 0 && (
                                                 <div className="text-center py-1">
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                    <span className="text-xs text-muted-foreground">
                                                         +{remainingCount} more
                                                     </span>
                                                 </div>
@@ -1294,8 +1294,8 @@ export default function Index({ representingCountries: data, availableCountries,
                                                         <span
                                                             className={`text-xs font-medium ${
                                                                 subStatus.is_active
-                                                                    ? 'text-blue-600 dark:text-blue-400'
-                                                                    : 'text-gray-500 dark:text-gray-400'
+                                                                    ? 'text-info dark:text-info-foreground'
+                                                                    : 'text-muted-foreground'
                                                             }`}
                                                         >
                                                             {subStatus.is_active ? 'Active' : 'Inactive'}
@@ -1319,7 +1319,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive/90"
                                                             onClick={() =>
                                                                 handleDeleteSubStatus(
                                                                     subStatusSheet.data!.representingCountry,
@@ -1433,7 +1433,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     required
                                 />
                                 {editSubStatusErrors.name && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {editSubStatusErrors.name}
                                     </p>
                                 )}
@@ -1453,7 +1453,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     rows={3}
                                 />
                                 {editSubStatusErrors.description && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {editSubStatusErrors.description}
                                     </p>
                                 )}
@@ -1528,7 +1528,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     required
                                 />
                                 {addSubStatusErrors.name && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {addSubStatusErrors.name}
                                     </p>
                                 )}
@@ -1548,7 +1548,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     rows={3}
                                 />
                                 {addSubStatusErrors.description && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {addSubStatusErrors.description}
                                     </p>
                                 )}
@@ -1619,7 +1619,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     required
                                 />
                                 {addStepErrors.status_name && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {addStepErrors.status_name}
                                     </p>
                                 )}
@@ -1671,7 +1671,7 @@ export default function Index({ representingCountries: data, availableCountries,
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={confirmDeleteStatus}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive hover:bg-destructive/90"
                             >
                                 Delete
                             </AlertDialogAction>
@@ -1697,7 +1697,7 @@ export default function Index({ representingCountries: data, availableCountries,
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={confirmDeleteSubStatus}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive hover:bg-destructive/90"
                             >
                                 Delete
                             </AlertDialogAction>
@@ -1726,7 +1726,7 @@ export default function Index({ representingCountries: data, availableCountries,
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={confirmDeleteRepCountry}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive hover:bg-destructive/90"
                             >
                                 Delete Country
                             </AlertDialogAction>
@@ -1783,7 +1783,7 @@ export default function Index({ representingCountries: data, availableCountries,
                                     required
                                 />
                                 {errors.custom_name && (
-                                    <p className="text-sm text-red-600">
+                                    <p className="text-sm text-destructive">
                                         {errors.custom_name}
                                     </p>
                                 )}

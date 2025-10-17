@@ -73,8 +73,8 @@ function SortableItem({ status, index }: SortableItemProps) {
             style={style}
             className={`flex items-center gap-3 rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 ${
                 isNewStatus
-                    ? 'opacity-60 border-gray-200'
-                    : 'hover:shadow-md hover:border-blue-300'
+                    ? 'opacity-60 border-border'
+                    : 'hover:shadow-md hover:border-info/50'
             } ${isDragging ? 'shadow-lg scale-105' : ''}`}
         >
             {/* Drag Handle or Indicator */}
@@ -84,7 +84,7 @@ function SortableItem({ status, index }: SortableItemProps) {
                 </div>
             ) : (
                 <button
-                    className="cursor-grab touch-none active:cursor-grabbing p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="cursor-grab touch-none active:cursor-grabbing p-1 rounded hover:bg-muted/50"
                     {...attributes}
                     {...listeners}
                 >
@@ -95,7 +95,7 @@ function SortableItem({ status, index }: SortableItemProps) {
             {/* Step Number */}
             <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
                 isNewStatus
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    ? 'bg-muted text-muted-foreground'
                     : 'bg-primary/10 text-primary'
             }`}>
                 {index + 1}
@@ -103,7 +103,7 @@ function SortableItem({ status, index }: SortableItemProps) {
 
             {/* Content */}
             <div className="flex-1">
-                <p className={`font-medium ${isNewStatus ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                <p className={`font-medium ${isNewStatus ? 'text-muted-foreground' : 'text-foreground'}`}>
                     {status.custom_name || status.status_name}
                 </p>
                 {isNewStatus && (
@@ -235,8 +235,8 @@ export default function Reorder({ representingCountry }: Props) {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg flex-shrink-0">
-                                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <div className="p-2 bg-info/10 dark:bg-info/30 rounded-lg flex-shrink-0">
+                                <Info className="w-4 h-4 text-info dark:text-info-foreground" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-medium mb-2 text-sm">How to reorder steps</h3>
@@ -291,8 +291,8 @@ export default function Reorder({ representingCountry }: Props) {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg flex-shrink-0">
-                                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                            <div className="p-2 bg-success/10 dark:bg-success/30 rounded-lg flex-shrink-0">
+                                <CheckCircle className="w-4 h-4 text-success dark:text-success-foreground" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-medium text-sm mb-1">Current Order</h3>
