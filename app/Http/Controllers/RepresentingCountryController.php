@@ -45,12 +45,20 @@ final class RepresentingCountryController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'flag']);
 
+        // Get statistics (not affected by filters)
+        $totalCountries = RepresentingCountry::count();
+        $activeCountries = RepresentingCountry::where('is_active', true)->count();
+
         return Inertia::render('representing-countries/index', [
             'representingCountries' => RepresentingCountryResource::collection($representingCountries),
             'availableCountries' => $availableCountries,
             'filters' => [
                 'country' => $request->input('country'),
                 'status' => $request->input('status'),
+            ],
+            'statistics' => [
+                'totalCountries' => $totalCountries,
+                'activeCountries' => $activeCountries,
             ],
         ]);
     }
@@ -405,6 +413,26 @@ final class RepresentingCountryController extends Controller
         ]);
 
         $updateSubStatusAction->handle($subStatus, $validated);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Sub-status updated successfully.');
+    }
+
+    public function toggleSubStatusActive(
+        RepresentingCountry $representingCountry,
+        RepCountryStatus $status,
+        $subStatusId
+    ): RedirectResponse {
+        // Verify the status belongs to this representing country
+        if ($status->representing_country_id !== $representingCountry->id) {
+            abort(404);
+        }
+
+        $subStatus = $status->subStatuses()->findOrFail($subStatusId);
+        $subStatus->update([
+            'is_active' => ! $subStatus->is_active,
+        ]);
 
         return redirect()
             ->back()

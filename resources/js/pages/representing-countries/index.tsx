@@ -98,6 +98,10 @@ interface Props {
         country?: string;
         status?: string;
     };
+    statistics: {
+        totalCountries: number;
+        activeCountries: number;
+    };
 }
 
 interface StatusDialogData {
@@ -152,7 +156,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ representingCountries: data, availableCountries, filters }: Props) {
+export default function Index({ representingCountries: data, availableCountries, filters, statistics }: Props) {
     const [expandedCountries, setExpandedCountries] = useState<Set<string>>(
         new Set()
     );
@@ -226,6 +230,43 @@ export default function Index({ representingCountries: data, availableCountries,
             },
             {
                 preserveScroll: true,
+            }
+        );
+    };
+
+    const handleToggleSubStatusActive = (
+        representingCountryId: string,
+        statusId: number,
+        subStatusId: number
+    ) => {
+        router.post(
+            representingCountries.toggleSubstatusActive([
+                representingCountryId,
+                statusId,
+                subStatusId,
+            ]).url,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Update the sheet data in real-time
+                    if (subStatusSheet.data) {
+                        const updatedSubStatuses = subStatusSheet.data.status.sub_statuses?.map(
+                            (ss) =>
+                                ss.id === subStatusId
+                                    ? { ...ss, is_active: !ss.is_active }
+                                    : ss
+                        );
+
+                        subStatusSheet.open({
+                            ...subStatusSheet.data,
+                            status: {
+                                ...subStatusSheet.data.status,
+                                sub_statuses: updatedSubStatuses,
+                            },
+                        });
+                    }
+                },
             }
         );
     };
@@ -747,6 +788,40 @@ export default function Index({ representingCountries: data, availableCountries,
                     </CardContent>
                 </Card>
 
+                {/* Statistics Section */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                                    <List className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm text-muted-foreground">Total Countries</p>
+                                    <p className="text-2xl font-bold">
+                                        {statistics.totalCountries}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm text-muted-foreground">Active Countries</p>
+                                    <p className="text-2xl font-bold">
+                                        {statistics.activeCountries}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {data?.data?.map((repCountry) => {
                         // Skip if no id present
@@ -1168,102 +1243,149 @@ export default function Index({ representingCountries: data, availableCountries,
                         }
                     }}
                 >
-                    <SheetContent>
+                    <SheetContent className="flex h-full flex-col gap-0 p-0 sm:max-w-xl">
                         {(subStatusSheet.isOpen || isSheetClosing) && subStatusSheet.data && (
                             <>
-                                <SheetHeader>
-                                    <SheetTitle>
-                                        Sub-Statuses for{' '}
-                                        {subStatusSheet.data.status.custom_name ||
-                                            subStatusSheet.data.status.status_name}
+                                <SheetHeader className="shrink-0 space-y-3 border-b px-6 pb-4 pt-6">
+                                    <SheetTitle className="text-xl">
+                                        Sub-Steps for "{subStatusSheet.data.status.custom_name ||
+                                            subStatusSheet.data.status.status_name}"
                                     </SheetTitle>
-                                    <SheetDescription>
-                                        Viewing sub-statuses for{' '}
+                                    <SheetDescription className="text-sm">
+                                        Manage sub-steps for{' '}
                                         {subStatusSheet.data.representingCountry.country?.name}
                                     </SheetDescription>
                                 </SheetHeader>
-                                <div className="mt-6 space-y-4">
+                                <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">
                                     {subStatusSheet.data.status.sub_statuses &&
                                     subStatusSheet.data.status.sub_statuses.length > 0 ? (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {subStatusSheet.data.status.sub_statuses.map(
                                         (subStatus, index) => (
                                             <div
                                                 key={subStatus.id}
-                                                className="flex items-center gap-3 rounded-lg border bg-card p-3"
+                                                className="flex items-start gap-3 rounded-lg border bg-card p-4 transition-all hover:shadow-sm"
                                             >
-                                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                                                     {index + 1}
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="font-medium text-sm">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium">
                                                         {subStatus.name}
                                                     </p>
                                                     {subStatus.description && (
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {
-                                                                subStatus.description
-                                                            }
+                                                        <p className="mt-1 text-xs text-muted-foreground">
+                                                            {subStatus.description}
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge
-                                                        variant={
-                                                            subStatus.is_active
-                                                                ? 'default'
-                                                                : 'secondary'
-                                                        }
-                                                    >
-                                                        {subStatus.is_active
-                                                            ? 'Active'
-                                                            : 'Inactive'}
-                                                    </Badge>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-7 w-7 p-0"
-                                                        onClick={() =>
-                                                            handleEditSubStatus(
-                                                                subStatusSheet.data!.representingCountry,
-                                                                subStatusSheet.data!.status,
-                                                                subStatus
-                                                            )
-                                                        }
-                                                    >
-                                                        <Pencil className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
-                                                        onClick={() =>
-                                                            handleDeleteSubStatus(
-                                                                subStatusSheet.data!.representingCountry,
-                                                                subStatusSheet.data!.status,
-                                                                subStatus
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </Button>
+                                                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Switch
+                                                            checked={subStatus.is_active}
+                                                            onCheckedChange={() =>
+                                                                handleToggleSubStatusActive(
+                                                                    subStatusSheet.data!.representingCountry.id,
+                                                                    subStatusSheet.data!.status.id,
+                                                                    subStatus.id
+                                                                )
+                                                            }
+                                                        />
+                                                        <span
+                                                            className={`text-xs font-medium ${
+                                                                subStatus.is_active
+                                                                    ? 'text-blue-600 dark:text-blue-400'
+                                                                    : 'text-gray-500 dark:text-gray-400'
+                                                            }`}
+                                                        >
+                                                            {subStatus.is_active ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={() =>
+                                                                handleEditSubStatus(
+                                                                    subStatusSheet.data!.representingCountry,
+                                                                    subStatusSheet.data!.status,
+                                                                    subStatus
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                                            onClick={() =>
+                                                                handleDeleteSubStatus(
+                                                                    subStatusSheet.data!.representingCountry,
+                                                                    subStatusSheet.data!.status,
+                                                                    subStatus
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )
                                     )}
                                 </div>
                             ) : (
-                                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                                            <p className="text-muted-foreground mb-4">
-                                                No sub-statuses added yet
+                                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
+                                            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                                                <List className="text-muted-foreground h-8 w-8" />
+                                            </div>
+                                            <p className="text-muted-foreground mb-2 text-sm font-medium">
+                                                No sub-steps added yet
                                             </p>
-                                            <Button>
+                                            <p className="text-muted-foreground mb-4 text-xs">
+                                                Get started by adding your first sub-step
+                                            </p>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => {
+                                                    if (subStatusSheet.data) {
+                                                        handleAddSubStatus(
+                                                            subStatusSheet.data.representingCountry,
+                                                            subStatusSheet.data.status
+                                                        );
+                                                    }
+                                                }}
+                                            >
                                                 <PlusIcon className="mr-2 h-4 w-4" />
-                                                Add Sub-Status
+                                                Add Sub-Step
                                             </Button>
                                         </div>
                                     )}
                                 </div>
+                                
+                                {/* Footer with Add Button */}
+                                {subStatusSheet.data?.status.sub_statuses && 
+                                    subStatusSheet.data.status.sub_statuses.length > 0 && (
+                                    <div className="shrink-0 border-t bg-background px-6 pb-6 pt-4">
+                                        <Button
+                                            className="w-full"
+                                            variant="outline"
+                                            onClick={() => {
+                                                if (subStatusSheet.data) {
+                                                    handleAddSubStatus(
+                                                        subStatusSheet.data.representingCountry,
+                                                        subStatusSheet.data.status
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            <PlusIcon className="mr-2 h-4 w-4" />
+                                            Add Another Sub-Step
+                                        </Button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </SheetContent>

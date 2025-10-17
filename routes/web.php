@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('representing-countries/{representingCountry}/status/{status}', [App\Http\Controllers\RepresentingCountryController::class, 'deleteStatus'])->name('representing-countries.delete-status');
     Route::post('representing-countries/{representingCountry}/status/{status}/add-substatus', [App\Http\Controllers\RepresentingCountryController::class, 'addSubStatus'])->name('representing-countries.add-substatus');
     Route::put('representing-countries/{representingCountry}/status/{status}/substatus/{subStatus}', [App\Http\Controllers\RepresentingCountryController::class, 'updateSubStatus'])->name('representing-countries.update-substatus');
+    Route::post('representing-countries/{representingCountry}/status/{status}/substatus/{subStatus}/toggle-active', [App\Http\Controllers\RepresentingCountryController::class, 'toggleSubStatusActive'])->name('representing-countries.toggle-substatus-active');
     Route::delete('representing-countries/{representingCountry}/status/{status}/substatus/{subStatus}', [App\Http\Controllers\RepresentingCountryController::class, 'deleteSubStatus'])->name('representing-countries.delete-substatus');
 });
 
