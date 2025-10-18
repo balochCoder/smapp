@@ -53,7 +53,6 @@ import {
     List,
     Eye,
     X,
-    Filter,
     Check,
     ChevronsUpDown,
 } from 'lucide-react';
@@ -65,7 +64,6 @@ interface Props {
     availableCountries?: Country[];
     filters?: {
         country?: string;
-        status?: string;
     };
     statistics: {
         totalCountries: number;
@@ -110,7 +108,6 @@ export default function BranchIndex({ representingCountries: data, availableCoun
     });
 
     // Get filters from URL
-    const statusFilter = (filters?.status as 'all' | 'active' | 'inactive') || 'all';
     const countryFilter = filters?.country || 'all';
 
     const handleViewSubStatuses = (
@@ -188,7 +185,6 @@ export default function BranchIndex({ representingCountries: data, availableCoun
             {
                 page,
                 country: countryFilter !== 'all' ? countryFilter : undefined,
-                status: statusFilter !== 'all' ? statusFilter : undefined,
             },
             { preserveScroll: true, preserveState: true }
         );
@@ -208,18 +204,6 @@ export default function BranchIndex({ representingCountries: data, availableCoun
             representingCountries.index().url,
             {
                 country: countryId === 'all' ? undefined : countryId,
-                status: statusFilter !== 'all' ? statusFilter : undefined,
-            },
-            { preserveScroll: true, preserveState: true }
-        );
-    };
-
-    const handleStatusSelect = (status: 'all' | 'active' | 'inactive') => {
-        router.get(
-            representingCountries.index().url,
-            {
-                country: countryFilter !== 'all' ? countryFilter : undefined,
-                status: status !== 'all' ? status : undefined,
             },
             { preserveScroll: true, preserveState: true }
         );
@@ -328,56 +312,28 @@ export default function BranchIndex({ representingCountries: data, availableCoun
                                     </div>
                                 )}
 
-                                {/* Status Filter and Clear Button */}
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                    <div className="flex items-center gap-2">
-                                        <Filter className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">Status:</span>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                                                size="sm"
-                                                onClick={() => handleStatusSelect('all')}
-                                                disabled={statusFilter === 'all'}
-                                            >
-                                                All
-                                            </Button>
-                                            <Button
-                                                variant={statusFilter === 'active' ? 'default' : 'outline'}
-                                                size="sm"
-                                                onClick={() => handleStatusSelect('active')}
-                                            >
-                                                Active
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Clear Filters Button */}
-                                    {(statusFilter !== 'all' || countryFilter !== 'all') && (
+                                {/* Clear Filters Button */}
+                                {countryFilter !== 'all' && (
+                                    <div className="flex justify-end">
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={handleClearFilters}
-                                            className="w-full sm:w-auto "
+                                            className="w-full sm:w-auto"
                                         >
                                             <X className="mr-2 h-4 w-4" />
                                             Clear Filters
                                         </Button>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Filter Summary */}
-                            {(statusFilter !== 'all' || countryFilter !== 'all') && (
+                            {countryFilter !== 'all' && (
                                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground border-t pt-3">
                                     <span>
                                         {data?.meta?.total || 0} {(data?.meta?.total || 0) === 1 ? 'country' : 'countries'} found
                                     </span>
-                                    {statusFilter !== 'all' && (
-                                        <Badge variant="secondary" className="text-xs">
-                                            Status: {statusFilter}
-                                        </Badge>
-                                    )}
                                     {countryFilter !== 'all' && (
                                         <Badge variant="secondary" className="text-xs">
                                             Country: {getSelectedCountryName()}
@@ -543,9 +499,6 @@ export default function BranchIndex({ representingCountries: data, availableCoun
                                                                 status.status_name}
                                                         </span>
                                                         <div className="flex items-center gap-1">
-                                                            <Badge variant={status.is_active ? 'default' : 'secondary'} className="text-xs">
-                                                                {status.is_active ? 'Active' : 'Inactive'}
-                                                            </Badge>
                                                             {status.sub_statuses && status.sub_statuses.length > 0 && (
                                                                 <Button
                                                                     variant="ghost"
@@ -561,6 +514,10 @@ export default function BranchIndex({ representingCountries: data, availableCoun
                                                                     <List className="h-2.5 w-2.5" />
                                                                 </Button>
                                                             )}
+                                                            <Badge variant={status.is_active ? 'default' : 'secondary'} className="text-xs">
+                                                                {status.is_active ? 'Active' : 'Inactive'}
+                                                            </Badge>
+
                                                         </div>
                                                     </div>
                                                 )
@@ -651,7 +608,7 @@ export default function BranchIndex({ representingCountries: data, availableCoun
                 {(!data?.data || data.data.length === 0) && (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">
-                            {(statusFilter !== 'all' || countryFilter !== 'all') ? (
+                            {countryFilter !== 'all' ? (
                                 <>
                                     <p className="text-muted-foreground mb-4">
                                         No countries match your filters

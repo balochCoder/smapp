@@ -26,7 +26,7 @@ final class RepresentingCountryController extends Controller
         // Force status to 'active' for branch users
         $representingCountries = $getFilteredAction->handle(
             $request->input('country'),
-            $request->input('status', 'active') // Default to active for branch users
+            'active' // Always show only active countries for branch users
         );
 
         // Get all active countries for the filter
@@ -46,7 +46,6 @@ final class RepresentingCountryController extends Controller
             'availableCountries' => $availableCountries,
             'filters' => [
                 'country' => $request->input('country'),
-                'status' => $request->input('status', 'active'),
             ],
             'statistics' => [
                 'totalCountries' => $totalCountries,
