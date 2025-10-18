@@ -117,7 +117,7 @@ export default function Create({ countries, applicationProcesses }: Props) {
                         />
                     </div>
                     <Link href={representingCountries.index()} className="w-full sm:w-auto">
-                        <Button variant="default" className="w-full cursor-pointer">
+                        <Button variant="default" className="w-full">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Countries
                         </Button>
