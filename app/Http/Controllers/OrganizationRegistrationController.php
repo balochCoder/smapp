@@ -108,8 +108,13 @@ final class OrganizationRegistrationController extends Controller
                 'email_verified_at' => now(), // Auto-verify for now
             ]);
 
-            // TODO: Assign admin role to user (requires RBAC implementation)
-            // $user->assignRole('Admin');
+            // Create tenant roles for the new organization and assign Admin role
+            setPermissionsTeamId($organization->id);
+            $tenantRolesSeeder = new \Database\Seeders\TenantRolesSeeder();
+            $tenantRolesSeeder->createTenantRoles($organization);
+
+            // Assign Admin role to the user
+            $user->assignRole('Admin');
 
             // Log the user in
             Auth::login($user);

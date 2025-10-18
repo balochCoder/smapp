@@ -13,9 +13,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Tenant-scoped tables that need organization_id
+        // Add organization_id to users (nullable for platform users like SuperAdmin)
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignUlid('organization_id')->nullable()->after('id')->constrained()->cascadeOnDelete();
+            $table->index('organization_id');
+        });
+
+        // Tenant-scoped tables that need organization_id (not nullable)
         $tables = [
-            'users',
             'branches',
             'representing_countries',
             'institutions',
