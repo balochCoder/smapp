@@ -2,19 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Models\Organization;
 use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use App\Models\User;
 
-use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\delete;
 use function Pest\Laravel\post;
 use function Pest\Laravel\put;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    actingAs($this->user);
+    // Create organization and user for multi-tenancy
+    $this->organization = Organization::factory()->create();
+    $this->user = User::factory()->for($this->organization)->create();
+    $this->actingAs($this->user);
 });
 
 it('can toggle status active state', function () {
@@ -171,7 +173,7 @@ it('requires authentication to add status', function () {
 
 it('prevents adding duplicate status names for the same country', function () {
     $repCountry = RepresentingCountry::factory()->create();
-    
+
     RepCountryStatus::factory()->create([
         'representing_country_id' => $repCountry->id,
         'status_name' => 'Existing Status',
@@ -187,7 +189,7 @@ it('prevents adding duplicate status names for the same country', function () {
 it('allows same status name for different countries', function () {
     $repCountry1 = RepresentingCountry::factory()->create();
     $repCountry2 = RepresentingCountry::factory()->create();
-    
+
     RepCountryStatus::factory()->create([
         'representing_country_id' => $repCountry1->id,
         'status_name' => 'Same Status',
@@ -199,7 +201,7 @@ it('allows same status name for different countries', function () {
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
-    
+
     assertDatabaseHas('rep_country_status', [
         'representing_country_id' => $repCountry2->id,
         'status_name' => 'Same Status',
@@ -319,7 +321,7 @@ it('allows same sub-status name for different statuses', function () {
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
-    
+
     assertDatabaseHas('sub_statuses', [
         'rep_country_status_id' => $status2->id,
         'name' => 'Same Sub-Status',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToOrganization;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,12 +16,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 final class RepresentingCountry extends Model
 {
     /** @use HasFactory<\Database\Factories\RepresentingCountryFactory> */
-    use HasFactory;
+    use BelongsToOrganization;
 
+    use HasFactory;
     use HasUlids;
     use SoftDeletes;
 
     protected $fillable = [
+        'organization_id',
         'country_id',
         'monthly_living_cost',
         'currency',

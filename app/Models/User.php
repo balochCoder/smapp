@@ -7,6 +7,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,6 +24,7 @@ final class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'organization_id',
         'name',
         'email',
         'password',
@@ -39,6 +41,14 @@ final class User extends Authenticatable
         'two_factor_recovery_codes',
         'remember_token',
     ];
+
+    /**
+     * Get the organization that owns the user.
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     /**
      * Get the attributes that should be cast.

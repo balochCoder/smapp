@@ -24,7 +24,11 @@ final class UserFactory extends Factory
      */
     public function definition(): array
     {
+        // Get or create an organization for this user
+        $organization = \App\Models\Organization::first() ?? \App\Models\Organization::factory()->create();
+
         return [
+            'organization_id' => $organization->id,
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),

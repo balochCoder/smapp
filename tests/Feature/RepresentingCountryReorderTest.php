@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Country;
+use App\Models\Organization;
 use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use App\Models\User;
@@ -13,7 +14,9 @@ use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    // Create organization and user for multi-tenancy
+    $this->organization = Organization::factory()->create();
+    $this->user = User::factory()->for($this->organization)->create();
 });
 
 it('displays the reorder page for a representing country', function () {

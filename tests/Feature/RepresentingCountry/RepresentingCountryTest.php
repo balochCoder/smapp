@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 use App\Models\ApplicationProcess;
 use App\Models\Country;
+use App\Models\Organization;
 use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
-use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    actingAs($this->user);
+    // Create organization and user for multi-tenancy
+    $this->organization = Organization::factory()->create();
+    $this->user = User::factory()->for($this->organization)->create();
+    $this->actingAs($this->user);
 });
 
 it('can display the representing countries index page', function () {
@@ -309,7 +310,7 @@ it('validates currency is 3 characters on update', function () {
 
 it('creates status records when application process ids are provided', function () {
     $country = Country::factory()->create();
-    
+
     // Create processes with specific orders to ensure predictable sorting
     $process1 = ApplicationProcess::factory()->create(['name' => 'Process One', 'order' => 1]);
     $process2 = ApplicationProcess::factory()->create(['name' => 'Process Two', 'order' => 2]);
