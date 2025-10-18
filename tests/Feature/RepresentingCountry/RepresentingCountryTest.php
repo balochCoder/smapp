@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 use App\Models\ApplicationProcess;
 use App\Models\Country;
+use App\Models\Organization;
 use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
-use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    actingAs($this->user);
+    // Create organization and user for multi-tenancy
+    $this->organization = Organization::factory()->create();
+    $this->user = User::factory()->for($this->organization)->create();
+    $this->actingAs($this->user);
 });
 
 it('can display the representing countries index page', function () {
@@ -218,5 +219,218 @@ it('requires authentication to toggle active status', function () {
     ]);
 
     $this->post(route('representing-countries.toggle-active', $representingCountry))
+        ->assertRedirect(route('login'));
+});
+
+it('can create a representing country with currency', function () {
+    $country = Country::factory()->create();
+
+    $data = [
+        'country_id' => $country->id,
+        'monthly_living_cost' => 1500.00,
+        'currency' => 'GBP',
+        'visa_requirements' => 'Tier 4 Student Visa required',
+    ];
+
+    $response = $this->post(route('representing-countries.store'), $data);
+
+    $response->assertRedirect();
+
+    assertDatabaseHas('representing_countries', [
+        'country_id' => $country->id,
+        'monthly_living_cost' => 1500.00,
+        'currency' => 'GBP',
+    ]);
+});
+
+it('defaults to USD when currency is not provided', function () {
+    $country = Country::factory()->create();
+
+    $data = [
+        'country_id' => $country->id,
+        'monthly_living_cost' => 1000.00,
+    ];
+
+    $response = $this->post(route('representing-countries.store'), $data);
+
+    $response->assertRedirect();
+
+    $repCountry = RepresentingCountry::where('country_id', $country->id)->first();
+    expect($repCountry->currency)->toBe('USD');
+});
+
+it('can update currency for a representing country', function () {
+    $repCountry = RepresentingCountry::factory()->create([
+        'currency' => 'USD',
+        'monthly_living_cost' => 1200.00,
+    ]);
+
+    $data = [
+        'currency' => 'EUR',
+        'monthly_living_cost' => 1000.00,
+    ];
+
+    $response = $this->put(
+        route('representing-countries.update', $repCountry),
+        $data
+    );
+
+    $response->assertRedirect();
+
+    assertDatabaseHas('representing_countries', [
+        'id' => $repCountry->id,
+        'currency' => 'EUR',
+        'monthly_living_cost' => 1000.00,
+    ]);
+});
+
+it('validates currency is 3 characters', function () {
+    $country = Country::factory()->create();
+
+    $response = $this->post(route('representing-countries.store'), [
+        'country_id' => $country->id,
+        'currency' => 'INVALID',
+    ]);
+
+    $response->assertSessionHasErrors(['currency']);
+});
+
+it('validates currency is 3 characters on update', function () {
+    $repCountry = RepresentingCountry::factory()->create();
+
+    $response = $this->put(
+        route('representing-countries.update', $repCountry),
+        [
+            'currency' => 'AB',
+        ]
+    );
+
+    $response->assertSessionHasErrors(['currency']);
+});
+
+it('creates status records when application process ids are provided', function () {
+    $country = Country::factory()->create();
+
+    // Create processes with specific orders to ensure predictable sorting
+    $process1 = ApplicationProcess::factory()->create(['name' => 'Process One', 'order' => 1]);
+    $process2 = ApplicationProcess::factory()->create(['name' => 'Process Two', 'order' => 2]);
+    $process3 = ApplicationProcess::factory()->create(['name' => 'Process Three', 'order' => 3]);
+
+    $data = [
+        'country_id' => $country->id,
+        'monthly_living_cost' => 1200.00,
+        'application_process_ids' => [$process1->id, $process2->id, $process3->id],
+    ];
+
+    $response = $this->post(route('representing-countries.store'), $data);
+
+    $response->assertRedirect();
+
+    $repCountry = RepresentingCountry::where('country_id', $country->id)->first();
+
+    // Verify all status records were created
+    expect($repCountry->repCountryStatuses)->toHaveCount(3);
+
+    // Verify each status was created correctly (order is based on ApplicationProcess order field)
+    assertDatabaseHas('rep_country_status', [
+        'representing_country_id' => $repCountry->id,
+        'status_name' => 'Process One',
+        'order' => 1,
+        'is_active' => true,
+    ]);
+
+    assertDatabaseHas('rep_country_status', [
+        'representing_country_id' => $repCountry->id,
+        'status_name' => 'Process Two',
+        'order' => 2,
+        'is_active' => true,
+    ]);
+
+    assertDatabaseHas('rep_country_status', [
+        'representing_country_id' => $repCountry->id,
+        'status_name' => 'Process Three',
+        'order' => 3,
+        'is_active' => true,
+    ]);
+});
+
+it('can update without changing application processes', function () {
+    $repCountry = RepresentingCountry::factory()->create([
+        'monthly_living_cost' => 1000,
+    ]);
+
+    $data = [
+        'monthly_living_cost' => 1200.00,
+        'visa_requirements' => 'Updated requirements',
+    ];
+
+    $response = $this->put(
+        route('representing-countries.update', $repCountry),
+        $data
+    );
+
+    $response->assertRedirect();
+
+    assertDatabaseHas('representing_countries', [
+        'id' => $repCountry->id,
+        'monthly_living_cost' => 1200.00,
+        'visa_requirements' => 'Updated requirements',
+    ]);
+});
+
+it('requires authentication to create', function () {
+    Auth::logout();
+
+    $this->post(route('representing-countries.store'), [])
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to update', function () {
+    Auth::logout();
+
+    $repCountry = RepresentingCountry::factory()->create();
+
+    $this->put(route('representing-countries.update', $repCountry), [])
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to delete', function () {
+    Auth::logout();
+
+    $repCountry = RepresentingCountry::factory()->create();
+
+    $this->delete(route('representing-countries.destroy', $repCountry))
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to view show page', function () {
+    Auth::logout();
+
+    $repCountry = RepresentingCountry::factory()->create();
+
+    $this->get(route('representing-countries.show', $repCountry))
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to view edit page', function () {
+    Auth::logout();
+
+    $repCountry = RepresentingCountry::factory()->create();
+
+    $this->get(route('representing-countries.edit', $repCountry))
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to view create page', function () {
+    Auth::logout();
+
+    $this->get(route('representing-countries.create'))
+        ->assertRedirect(route('login'));
+});
+
+it('requires authentication to view index page', function () {
+    Auth::logout();
+
+    $this->get(route('representing-countries.index'))
         ->assertRedirect(route('login'));
 });

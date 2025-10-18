@@ -16,6 +16,7 @@ final class UpdateRepresentingCountry
         return DB::transaction(function () use ($representingCountry, $data) {
             $representingCountry->update([
                 'monthly_living_cost' => $data['monthly_living_cost'] ?? $representingCountry->monthly_living_cost,
+                'currency' => $data['currency'] ?? $representingCountry->currency,
                 'visa_requirements' => $data['visa_requirements'] ?? $representingCountry->visa_requirements,
                 'part_time_work_details' => $data['part_time_work_details'] ?? $representingCountry->part_time_work_details,
                 'country_benefits' => $data['country_benefits'] ?? $representingCountry->country_benefits,

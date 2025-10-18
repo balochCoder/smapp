@@ -43,7 +43,34 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Create an organization for testing.
+ */
+function createOrganization(array $attributes = []): App\Models\Organization
 {
-    // ..
+    return App\Models\Organization::factory()->create($attributes);
+}
+
+/**
+ * Create a user for a specific organization.
+ */
+function createUserForOrganization(?App\Models\Organization $organization = null, array $attributes = []): App\Models\User
+{
+    $organization = $organization ?? createOrganization();
+
+    return App\Models\User::factory()
+        ->for($organization)
+        ->create($attributes);
+}
+
+/**
+ * Create a user and act as them in tests.
+ */
+function actingAsUserWithOrganization(?App\Models\Organization $organization = null, array $userAttributes = []): App\Models\User
+{
+    $user = createUserForOrganization($organization, $userAttributes);
+
+    test()->actingAs($user);
+
+    return $user;
 }

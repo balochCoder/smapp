@@ -631,26 +631,34 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			}
 		};
 
-		const handleClear = () => {
-			if (disabled) return;
-			setSelectedValues([]);
-			onValueChange([]);
-		};
+	const handleClear = () => {
+		if (disabled) return;
+		// Only clear non-disabled options, keep disabled ones
+		const disabledValues = getAllOptions()
+			.filter(o => o.disabled)
+			.map(o => o.value);
+		setSelectedValues(disabledValues);
+		onValueChange(disabledValues);
+	};
 
 		const handleTogglePopover = () => {
 			if (disabled) return;
 			setIsPopoverOpen((prev) => !prev);
 		};
 
-		const clearExtraOptions = () => {
-			if (disabled) return;
-			const newSelectedValues = selectedValues.slice(
-				0,
-				responsiveSettings.maxCount
-			);
-			setSelectedValues(newSelectedValues);
-			onValueChange(newSelectedValues);
-		};
+	const clearExtraOptions = () => {
+		if (disabled) return;
+		// Keep all disabled options and only limit non-disabled ones
+		const disabledValues = getAllOptions()
+			.filter(o => o.disabled)
+			.map(o => o.value);
+		const disabledSelected = selectedValues.filter(v => disabledValues.includes(v));
+		const nonDisabledSelected = selectedValues.filter(v => !disabledValues.includes(v));
+		const limitedNonDisabled = nonDisabledSelected.slice(0, responsiveSettings.maxCount - disabledSelected.length);
+		const newSelectedValues = [...disabledSelected, ...limitedNonDisabled];
+		setSelectedValues(newSelectedValues);
+		onValueChange(newSelectedValues);
+	};
 
 		const toggleAll = () => {
 			if (disabled) return;
