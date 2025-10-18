@@ -16,31 +16,27 @@ final class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Step 1: Create organizations first (multi-tenant foundation)
+        // Step 1: Seed RBAC permissions and roles (must be first)
+        $this->call([
+            PermissionsSeeder::class,           // Create all permissions
+            PlatformRolesSeeder::class,         // Create platform roles (SuperAdmin, Support)
+        ]);
+
+        // Step 2: Create organizations first (multi-tenant foundation)
         $this->call(OrganizationSeeder::class);
 
-        // Step 2: Get first organization for demo admin user
-        $firstOrg = Organization::first();
+        // Step 3: Create tenant roles for each organization
+        $this->call(TenantRolesSeeder::class);
 
-        // Step 3: Create admin user for the first organization
-        if ($firstOrg) {
-            User::firstOrCreate(
-                ['email' => 'admin@example.com'],
-                [
-                    'organization_id' => $firstOrg->id,
-                    'name' => 'Admin User',
-                    'password' => 'password',
-                    'email_verified_at' => now(),
-                ]
-            );
-        }
+        // Step 4: Create users and assign roles
+        $this->call(UserSeeder::class);
 
-        // Step 4: Seed global data (not tenant-specific)
+        // Step 5: Seed global data (not tenant-specific)
         $this->call([
             ApplicationProcessSeeder::class,      // Global application status templates
         ]);
 
-        // Step 5: Seed tenant-scoped data for each organization
+        // Step 6: Seed tenant-scoped data for each organization
         // Note: The seeders will automatically scope data to the authenticated user's organization
         // due to the BelongsToOrganization trait and global scope
         $this->call([
@@ -59,5 +55,6 @@ final class DatabaseSeeder extends Seeder
         $this->command->info('✅ Multi-tenant database seeded successfully!');
         $this->command->info('📊 Organizations: '.Organization::count());
         $this->command->info('👥 Users: '.User::count());
+        $this->command->info('🎭 Roles: '.\Spatie\Permission\Models\Role::count());
     }
 }

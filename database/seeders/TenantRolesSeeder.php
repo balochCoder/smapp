@@ -75,7 +75,7 @@ final class TenantRolesSeeder extends Seeder
         ])->get();
         $admin->syncPermissions($adminPermissions);
 
-        // 2. Branch Manager - Manage specific branch
+        // 2. Branch Manager - View-only access (can see everything but cannot add/edit/delete)
         $branchManager = Role::firstOrCreate(
             [
                 'name' => 'BranchManager',
@@ -85,17 +85,18 @@ final class TenantRolesSeeder extends Seeder
         );
 
         $branchManagerPermissions = Permission::whereIn('name', [
-            'create-leads', 'view-leads', 'edit-leads', 'assign-leads',
-            'create-students', 'view-students', 'edit-students',
-            'create-applications', 'view-applications', 'edit-applications', 'submit-applications', 'track-applications',
+            'view-leads',
+            'view-students',
+            'view-applications', 'track-applications',
             'view-institutions', 'view-courses', 'search-courses',
-            'view-branches', 'manage-branch-users',
-            'view-users', 'edit-users',
+            'view-branches',
+            'view-users',
             'view-reports', 'view-analytics', 'view-dashboard',
             'view-representing-countries',
-            'create-tasks', 'view-tasks', 'edit-tasks', 'assign-tasks',
-            'create-follow-ups', 'view-follow-ups', 'edit-follow-ups',
+            'view-tasks',
+            'view-follow-ups',
             'view-settings',
+            'view-payments', 'view-invoices', 'view-commissions',
         ])->get();
         $branchManager->syncPermissions($branchManagerPermissions);
 

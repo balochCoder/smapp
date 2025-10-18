@@ -20,7 +20,7 @@ import {
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Briefcase, FileText, Gift, Globe, Settings } from 'lucide-react';
 import { dashboard } from '@/routes';
-import * as representingCountries from '@/routes/representing-countries';
+import * as representingCountries from '@/routes/admin/representing-countries';
 
 interface Props {
     representingCountry: RepresentingCountry;

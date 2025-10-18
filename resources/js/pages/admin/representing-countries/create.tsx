@@ -28,7 +28,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { ArrowLeft, Briefcase, FileText, Gift, Globe, Plus, Settings } from 'lucide-react';
 import { dashboard } from '@/routes';
-import * as representingCountries from '@/routes/representing-countries';
+import * as representingCountries from '@/routes/admin/representing-countries';
 
 interface Props {
     countries: Country[];

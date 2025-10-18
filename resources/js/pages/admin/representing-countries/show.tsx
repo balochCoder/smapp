@@ -14,7 +14,7 @@ import {
 import { Head, Link } from '@inertiajs/react';
 import { Edit, ArrowLeft } from 'lucide-react';
 import { dashboard } from '@/routes';
-import * as representingCountries from '@/routes/representing-countries';
+import * as representingCountries from '@/routes/admin/representing-countries';
 
 interface Props {
     representingCountry: RepresentingCountry;

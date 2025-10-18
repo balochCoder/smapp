@@ -22,10 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
+            SetTenantContext::class,
+            SetPermissionsTeam::class, // Must come after SetTenantContext but BEFORE HandleInertiaRequests
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            SetTenantContext::class,
-            SetPermissionsTeam::class, // Must come after SetTenantContext
+        ]);
+
+        // Register Spatie Permission middleware aliases
+        $middleware->alias([
+            'role' => Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

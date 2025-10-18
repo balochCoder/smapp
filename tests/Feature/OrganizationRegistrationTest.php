@@ -17,6 +17,9 @@ it('can display the organization registration page', function () {
 });
 
 it('can register a new organization with trial plan', function () {
+    // Seed permissions first (required for role creation)
+    $this->seed(Database\Seeders\PermissionsSeeder::class);
+
     $data = [
         'organization_name' => 'Acme Education Consultancy',
         'organization_slug' => 'acme-education',
@@ -58,6 +61,28 @@ it('can register a new organization with trial plan', function () {
     // Verify user is authenticated
     $this->assertAuthenticated();
     expect(auth()->user()->id)->toBe($user->id);
+
+    // Verify tenant roles were created for the organization
+    setPermissionsTeamId($organization->id);
+    $roles = Spatie\Permission\Models\Role::where('organization_id', $organization->id)->pluck('name')->toArray();
+    expect($roles)->toHaveCount(6);
+    expect($roles)->toContain('Admin', 'BranchManager', 'Counsellor', 'ProcessingOfficer', 'FrontOffice', 'Finance');
+
+    // Refresh user to get updated role relationships
+    $user = $user->fresh();
+
+    // Re-set team context before checking roles/permissions
+    setPermissionsTeamId($organization->id);
+
+    // Verify the admin user has the Admin role assigned
+    expect($user->hasRole('Admin'))->toBeTrue();
+    expect($user->roles->count())->toBe(1);
+    expect($user->roles->pluck('name')->toArray())->toContain('Admin');
+
+    // Verify the user has admin permissions (check a few key ones)
+    expect($user->can('create-representing-countries'))->toBeTrue();
+    expect($user->can('view-representing-countries'))->toBeTrue();
+    expect($user->can('manage-organization'))->toBeTrue();
 });
 
 it('can register with different subscription plans', function ($plan) {

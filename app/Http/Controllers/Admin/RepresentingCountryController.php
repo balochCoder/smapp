@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Actions\RepresentingCountries\AddStatusToRepresentingCountry;
 use App\Actions\RepresentingCountries\AddSubStatusToStatus;
@@ -17,6 +17,7 @@ use App\Actions\RepresentingCountries\UpdateStatusNotes;
 use App\Actions\RepresentingCountries\UpdateStatusOrder;
 use App\Actions\RepresentingCountries\UpdateSubStatus;
 use App\Helpers\CurrencyHelper;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\RepresentingCountries\StoreRepresentingCountryRequest;
 use App\Http\Requests\RepresentingCountries\UpdateRepresentingCountryRequest;
 use App\Http\Resources\RepresentingCountryResource;
@@ -24,6 +25,7 @@ use App\Models\ApplicationProcess;
 use App\Models\Country;
 use App\Models\RepCountryStatus;
 use App\Models\RepresentingCountry;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -32,8 +34,11 @@ use Inertia\Response;
 
 final class RepresentingCountryController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request, GetFilteredRepresentingCountries $getFilteredAction): Response
     {
+
         $representingCountries = $getFilteredAction->handle(
             $request->input('country'),
             $request->input('status')
@@ -49,7 +54,7 @@ final class RepresentingCountryController extends Controller
         $totalCountries = RepresentingCountry::count();
         $activeCountries = RepresentingCountry::where('is_active', true)->count();
 
-        return Inertia::render('representing-countries/index', [
+        return Inertia::render('admin/representing-countries/index', [
             'representingCountries' => RepresentingCountryResource::collection($representingCountries),
             'availableCountries' => $availableCountries,
             'filters' => [
@@ -60,11 +65,19 @@ final class RepresentingCountryController extends Controller
                 'totalCountries' => $totalCountries,
                 'activeCountries' => $activeCountries,
             ],
+            'permissions' => [
+                'canCreate' => auth()->user()->can('create-representing-countries'),
+                'canEdit' => auth()->user()->can('edit-representing-countries'),
+                'canDelete' => auth()->user()->can('delete-representing-countries'),
+                'canManageStatus' => auth()->user()->can('manage-country-status'),
+            ],
         ]);
     }
 
     public function create(): Response
     {
+        $this->authorize('create-representing-countries');
+
         $availableCountries = Country::query()
             ->whereDoesntHave('representingCountry')
             ->where('is_active', true)
@@ -83,7 +96,7 @@ final class RepresentingCountryController extends Controller
             ->orderBy('order')
             ->get(['id', 'name', 'color']);
 
-        return Inertia::render('representing-countries/create', [
+        return Inertia::render('admin/representing-countries/create', [
             'countries' => $availableCountries,
             'applicationProcesses' => $applicationProcesses,
         ]);
@@ -93,18 +106,22 @@ final class RepresentingCountryController extends Controller
         StoreRepresentingCountryRequest $request,
         StoreRepresentingCountry $storeAction
     ): RedirectResponse {
+        $this->authorize('create-representing-countries');
+
         $representingCountry = $storeAction->handle(
             $request->validated('country_id'),
             $request->validated()
         );
 
         return redirect()
-            ->route('representing-countries.show', $representingCountry)
+            ->route('admin.representing-countries.show', $representingCountry)
             ->with('success', 'Representing country created successfully.');
     }
 
     public function show(RepresentingCountry $representingCountry): Response
     {
+        $this->authorize('view-representing-countries');
+
         $representingCountry->load([
             'country',
             'repCountryStatuses' => function ($query) {
@@ -112,13 +129,20 @@ final class RepresentingCountryController extends Controller
             },
         ]);
 
-        return Inertia::render('representing-countries/show', [
+        return Inertia::render('admin/representing-countries/show', [
             'representingCountry' => new RepresentingCountryResource($representingCountry),
+            'permissions' => [
+                'canEdit' => auth()->user()->can('edit-representing-countries'),
+                'canDelete' => auth()->user()->can('delete-representing-countries'),
+                'canManageStatus' => auth()->user()->can('manage-country-status'),
+            ],
         ]);
     }
 
     public function edit(RepresentingCountry $representingCountry): Response
     {
+        $this->authorize('edit-representing-countries');
+
         $representingCountry->load([
             'country',
             'repCountryStatuses' => function ($query) {
@@ -144,7 +168,7 @@ final class RepresentingCountryController extends Controller
             ->orderBy('order')
             ->get(['id', 'name', 'color']);
 
-        return Inertia::render('representing-countries/edit', [
+        return Inertia::render('admin/representing-countries/edit', [
             'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
             'applicationProcesses' => $applicationProcesses,
         ]);
@@ -155,13 +179,15 @@ final class RepresentingCountryController extends Controller
         RepresentingCountry $representingCountry,
         UpdateRepresentingCountry $updateAction
     ): RedirectResponse {
+        $this->authorize('edit-representing-countries');
+
         $updatedRepresentingCountry = $updateAction->handle(
             $representingCountry,
             $request->validated()
         );
 
         return redirect()
-            ->route('representing-countries.show', $updatedRepresentingCountry)
+            ->route('admin.representing-countries.show', $updatedRepresentingCountry)
             ->with('success', 'Representing country updated successfully.');
     }
 
@@ -169,15 +195,19 @@ final class RepresentingCountryController extends Controller
         RepresentingCountry $representingCountry,
         DeleteRepresentingCountry $deleteAction
     ): RedirectResponse {
+        $this->authorize('delete-representing-countries');
+
         $deleteAction->handle($representingCountry);
 
         return redirect()
-            ->route('representing-countries.index')
+            ->route('admin.representing-countries.index')
             ->with('success', 'Representing country deleted successfully.');
     }
 
     public function reorder(RepresentingCountry $representingCountry): Response
     {
+        $this->authorize('manage-country-status');
+
         $representingCountry->load([
             'country',
             'repCountryStatuses' => function ($query) {
@@ -185,7 +215,7 @@ final class RepresentingCountryController extends Controller
             },
         ]);
 
-        return Inertia::render('representing-countries/reorder', [
+        return Inertia::render('admin/representing-countries/reorder', [
             'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
         ]);
     }
@@ -195,6 +225,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         UpdateStatusOrder $updateOrderAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         $validated = $request->validate([
             'status_orders' => 'required|array',
             'status_orders.*.id' => 'required|exists:rep_country_status,id',
@@ -210,6 +242,8 @@ final class RepresentingCountryController extends Controller
 
     public function toggleActive(RepresentingCountry $representingCountry): RedirectResponse
     {
+        $this->authorize('manage-country-status');
+
         $representingCountry->update([
             'is_active' => ! $representingCountry->is_active,
         ]);
@@ -223,6 +257,8 @@ final class RepresentingCountryController extends Controller
         RepresentingCountry $representingCountry,
         Request $request
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         $request->validate([
             'status_id' => 'required|exists:rep_country_status,id',
         ]);
@@ -246,6 +282,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         UpdateStatusName $updateStatusNameAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         $validated = $request->validate([
             'status_id' => 'required|exists:rep_country_status,id',
             'custom_name' => 'required|string|max:255',
@@ -263,6 +301,8 @@ final class RepresentingCountryController extends Controller
 
     public function notes(RepresentingCountry $representingCountry): Response
     {
+        $this->authorize('manage-country-status');
+
         $representingCountry->load([
             'country',
             'repCountryStatuses' => function ($query) {
@@ -270,7 +310,7 @@ final class RepresentingCountryController extends Controller
             },
         ]);
 
-        return Inertia::render('representing-countries/notes', [
+        return Inertia::render('admin/representing-countries/notes', [
             'representingCountry' => RepresentingCountryResource::make($representingCountry)->resolve(),
         ]);
     }
@@ -280,6 +320,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         UpdateStatusNotes $updateNotesAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         $validated = $request->validate([
             'status_notes' => 'required|array',
             'status_notes.*.id' => 'required|exists:rep_country_status,id',
@@ -289,7 +331,7 @@ final class RepresentingCountryController extends Controller
         $updateNotesAction->handle($validated['status_notes']);
 
         return redirect()
-            ->route('representing-countries.notes', $representingCountry)
+            ->route('admin.representing-countries.notes', $representingCountry)
             ->with('success', 'Status notes updated successfully.');
     }
 
@@ -298,6 +340,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         AddStatusToRepresentingCountry $addStatusAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         $validated = $request->validate([
             'status_name' => [
                 'required',
@@ -323,6 +367,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         AddSubStatusToStatus $addSubStatusAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);
@@ -353,6 +399,8 @@ final class RepresentingCountryController extends Controller
         RepCountryStatus $status,
         DeleteStatus $deleteStatusAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);
@@ -371,6 +419,8 @@ final class RepresentingCountryController extends Controller
         $subStatusId,
         DeleteSubStatus $deleteSubStatusAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);
@@ -391,6 +441,8 @@ final class RepresentingCountryController extends Controller
         Request $request,
         UpdateSubStatus $updateSubStatusAction
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);
@@ -424,6 +476,8 @@ final class RepresentingCountryController extends Controller
         RepCountryStatus $status,
         $subStatusId
     ): RedirectResponse {
+        $this->authorize('manage-country-status');
+
         // Verify the status belongs to this representing country
         if ($status->representing_country_id !== $representingCountry->id) {
             abort(404);

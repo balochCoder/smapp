@@ -87,7 +87,7 @@ import {
     ChevronsUpDown,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
-import * as representingCountries from '@/routes/representing-countries';
+import * as representingCountries from '@/routes/admin/representing-countries';
 import { useState } from 'react';
 import { useDialog } from '@/hooks/use-dialog';
 

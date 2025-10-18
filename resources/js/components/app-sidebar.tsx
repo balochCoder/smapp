@@ -11,24 +11,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import * as adminRepresentingCountries from '@/routes/admin/representing-countries';
+import * as branchRepresentingCountries from '@/routes/branch/representing-countries';
+import * as counsellorRepresentingCountries from '@/routes/counsellor/representing-countries';
+import { SharedData, type NavItem } from '@/types';
+import { usePage, Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Globe } from 'lucide-react';
 import AppLogo from './app-logo';
-import * as representingCountries from '@/routes/representing-countries';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Representing Countries',
-        href: representingCountries.index(),
-        icon: Globe,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -44,6 +33,47 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth?.user;
+
+    // Determine the base path based on user's primary role
+    const getRepresentingCountriesRoute = () => {
+        if (!user || !user.roles) {
+            return null;
+        }
+
+        if (user.roles.includes('Admin')) {
+            return adminRepresentingCountries.index();
+        }
+        if (user.roles.includes('BranchManager')) {
+            return branchRepresentingCountries.index();
+        }
+        if (user.roles.includes('Counsellor')) {
+            return counsellorRepresentingCountries.index();
+        }
+        // Default to null if no role matches
+        return null;
+    };
+
+    const representingCountriesRoute = getRepresentingCountriesRoute();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        ...(representingCountriesRoute
+            ? [
+                  {
+                      title: 'Representing Countries',
+                      href: representingCountriesRoute,
+                      icon: Globe,
+                  },
+              ]
+            : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

@@ -16,7 +16,7 @@ import {
 import { Head, Link, router } from '@inertiajs/react';
 import { GripVertical, Loader2, ArrowLeft, Info, CheckCircle, ArrowUpDown } from 'lucide-react';
 import { dashboard } from '@/routes';
-import * as representingCountries from '@/routes/representing-countries';
+import * as representingCountries from '@/routes/admin/representing-countries';
 import { useState, useRef, useEffect } from 'react';
 import {
     DndContext,
